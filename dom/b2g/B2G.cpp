@@ -11,6 +11,7 @@
 #include "mozilla/dom/WorkerRunnable.h"
 #include "mozilla/EventStateManager.h"
 #include "nsIPermissionManager.h"
+#include <iostream>
 
 namespace mozilla {
 namespace dom {
@@ -90,6 +91,9 @@ NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN_INHERITED(B2G, DOMEventTargetHelper)
 #endif
 
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mListeners)
+#if defined(MOZ_WIDGET_GTK)
+  NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mB2GScreenManager)
+#endif
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mUsbManager)
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mPowerSupplyManager)
 NS_IMPL_CYCLE_COLLECTION_TRAVERSE_END
@@ -1142,6 +1146,38 @@ PowerSupplyManager* B2G::GetPowerSupplyManager(ErrorResult& aRv) {
   return mPowerSupplyManager;
 }
 
+#if defined(MOZ_WIDGET_GTK)
+/* static */
+bool B2G::HasB2GScreenManagerSupport(JSContext* /* unused */, JSObject* aGlobal) {
+  std::cout << "have screen !!!!!!!!!!!!!!!!!!!!!" << std::endl;
+  nsCOMPtr<nsPIDOMWindowInner> innerWindow = xpc::WindowOrNull(aGlobal);
+  // bool x = B2G::CheckPermission("screen"_ns, innerWindow);
+
+  return true;
+}
+
+B2GScreenManager* B2G::GetB2GScreenManager(ErrorResult& aRv) {
+  std::cout << "have screen !!!!!!!!!!!!!!!!!!!!!" << std::endl;
+  if (!mB2GScreenManager) {
+    if (!mOwner) {
+      aRv.Throw(NS_ERROR_UNEXPECTED);
+      return nullptr;
+    }
+    nsPIDOMWindowInner* innerWindow = mOwner->GetAsInnerWindow();
+    if (!innerWindow) {
+      aRv.Throw(NS_ERROR_UNEXPECTED);
+      return nullptr;
+    }
+
+    // if (!CheckPermission("screen"_ns, innerWindow)) {
+    //   aRv.Throw(NS_ERROR_DOM_SECURITY_ERR);
+    //   return nullptr;
+    // }
+    mB2GScreenManager = new B2GScreenManager(GetParentObject());
+  }
+  return mB2GScreenManager;
+}
+#endif
 /* static */
 bool B2G::HasUsbManagerSupport(JSContext* /* unused */, JSObject* aGlobal) {
   nsCOMPtr<nsPIDOMWindowInner> innerWindow = xpc::WindowOrNull(aGlobal);

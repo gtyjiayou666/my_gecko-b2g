@@ -12,6 +12,10 @@ const ALLOW_ACTION = Ci.nsIPermissionManager.ALLOW_ACTION;
 const DENY_ACTION = Ci.nsIPermissionManager.DENY_ACTION;
 const PROMPT_ACTION = Ci.nsIPermissionManager.PROMPT_ACTION;
 
+/**
+ * gty
+ * 添加HDMI接口
+ */
 // Permissions that are granted to all installed apps.
 export const defaultPermissions = [
   "vibration",
@@ -292,6 +296,11 @@ export const PermissionsTable = {
   rsu: {
     pwa: DENY_ACTION,
     signed: DENY_ACTION,
+    core: ALLOW_ACTION,
+  },
+  screen: {
+    pwa: DENY_ACTION,
+    signed: ALLOW_ACTION,
     core: ALLOW_ACTION,
   },
   settings: {

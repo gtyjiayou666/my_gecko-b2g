@@ -286,6 +286,12 @@ var shell = {
   },
 };
 
+
+window.addEventListener("changeSize", () => {
+  window.resizeBy(1000, 500);
+});
+
+
 function toggle_bool_pref(name) {
   let current = Services.prefs.getBoolPref(name);
   Services.prefs.setBoolPref(name, !current);

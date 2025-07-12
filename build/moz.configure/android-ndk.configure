@@ -103,6 +103,7 @@ def ndk_version(ndk):
         major, minor, human = get_ndk_version(ndk)
     except GetNdkVersionError as e:
         die(str(e))
+    NDK_VERSION = "r25b"
 
     if NDK_VERSION != human:
         die(

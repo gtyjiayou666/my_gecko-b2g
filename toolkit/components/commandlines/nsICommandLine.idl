@@ -84,7 +84,11 @@ interface nsICommandLine : nsISupports
    * @param aCaseSensitive Whether to do case-sensitive flag search.
    */
   AString handleFlagWithParam(in AString aFlag, in boolean aCaseSensitive);
-
+  /**
+   * gty
+   * 添加size参数
+   */
+  void appendSize(in long width, in long height);
   /**
    * The type of command line being processed.
    *

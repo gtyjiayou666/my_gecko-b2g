@@ -2,7 +2,7 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-
+#include <iostream>
 #include "nspr.h"
 #include "mozilla/dom/BrowserChild.h"
 #include "mozilla/dom/Document.h"
@@ -1370,7 +1370,7 @@ void nsDocLoader::DoFireOnStateChange(nsIWebProgress* const aProgress,
 
   NS_ASSERTION(aRequest,
                "Firing OnStateChange(...) notification with a NULL request!");
-
+  // std::cout << "执行nsDocLoader::DoFireOnStateChange" << std::endl;
   NOTIFY_LISTENERS(
       ((aStateFlags >> 16) & nsIWebProgress::NOTIFY_STATE_ALL),
       listener->OnStateChange(aProgress, aRequest, aStateFlags, aStatus););

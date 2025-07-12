@@ -5,7 +5,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "base/basictypes.h"
-
+#include <iostream>
 #include "BrowserParent.h"
 #include "mozilla/AlreadyAddRefed.h"
 #include "mozilla/EventForwards.h"
@@ -1113,6 +1113,7 @@ nsresult BrowserParent::UpdatePosition() {
                     NS_ERROR_FAILURE);
   // Avoid updating sizes here.
   windowDims.SizeTo(mRect.Size());
+  std::cout << "更新窗口UpdateDimensions:" << windowDims.width << "," << windowDims.height << "," << mDimensions.width << "," << mDimensions.height << std::endl;
   UpdateDimensions(windowDims, mDimensions);
   return NS_OK;
 }
@@ -1154,9 +1155,12 @@ void BrowserParent::UpdateDimensions(const nsIntRect& rect,
     mDimensions = size;
     mClientOffset = clientOffset;
     mChromeOffset = chromeOffset;
+    std::cout << "发送Dimensions消息" << std::endl;
 
     Unused << SendUpdateDimensions(GetDimensionInfo());
     UpdateNativePointerLockCenter(widget);
+  } else {
+    std::cout << "窗口没有发生变化" << std::endl;
   }
 }
 

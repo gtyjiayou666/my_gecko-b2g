@@ -42,7 +42,7 @@
 #include "js/PropertyAndElement.h"  // JS_DefineProperty
 #include "prenv.h"
 #include "nsAppDirectoryServiceDefs.h"
-
+#include <iostream>
 #if defined(XP_WIN)
 // Prevent collisions with nsAppStartup::GetStartupInfo()
 #  undef GetStartupInfo
@@ -779,6 +779,7 @@ nsAppStartup::CreateChromeWindow2(nsIWebBrowserChrome* aParent,
     nsCOMPtr<nsIAppShellService> appShell(
         do_GetService(NS_APPSHELLSERVICE_CONTRACTID));
     if (!appShell) return NS_ERROR_FAILURE;
+    std::cout << "CreateChromeWindow2：创建主窗口" << std::endl;
 
     appShell->CreateTopLevelWindow(
         0, 0, aChromeFlags, nsIAppShellService::SIZE_TO_CONTENT,

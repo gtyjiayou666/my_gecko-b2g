@@ -1304,6 +1304,11 @@ if CONFIG["MOZ_WIDGET_TOOLKIT"] == "gonk":
         #'VideoCallSessionModifyResponseEvent.webidl',
     ]
 
+if CONFIG["MOZ_WIDGET_TOOLKIT"] == "gtk":
+    WEBIDL_FILES += [
+        "B2GScreenManager.webidl",
+    ]
+
 if CONFIG["ACCESSIBILITY"]:
     WEBIDL_FILES += [
         "AccessibleNode.webidl",

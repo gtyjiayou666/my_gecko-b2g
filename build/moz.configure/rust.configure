@@ -179,6 +179,7 @@ def rust_compiler(rustc_info, cargo_info, target):
         """
             )
         )
+    MINIMUM_RUST_VERSION = "1.65.0"
     rustc_min_version = Version(MINIMUM_RUST_VERSION)
     cargo_min_version = rustc_min_version
 

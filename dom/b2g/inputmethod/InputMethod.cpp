@@ -12,7 +12,7 @@
 #include "nsIDocShell.h"
 #include "nsIGlobalObject.h"
 #include "mozilla/dom/IMELog.h"
-
+#include <iostream>
 using namespace mozilla::widget;
 
 namespace mozilla {
@@ -126,7 +126,7 @@ already_AddRefed<Promise> InputMethod::SendKey(const nsAString& aKey) {
   ENSURE_SUCCESS(rv, nullptr);
 
   IME_LOGD("-- InputMethod::SendKey");
-
+  std::cout << "-- InputMethod::SendKey" << std::endl; 
   RefPtr<InputMethodHandler> handler =
       InputMethodHandler::Create(promise, mServiceChild);
   nsresult result = handler->SendKey(++sId, aKey);

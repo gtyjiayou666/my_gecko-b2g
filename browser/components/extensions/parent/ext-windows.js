@@ -51,6 +51,7 @@ function sanitizePositionParams(params, window = null, positionOffset = 0) {
     width,
     height
   );
+  log.info("窗口验证");
   const availDeviceLeft = {};
   const availDeviceTop = {};
   const availDeviceWidth = {};

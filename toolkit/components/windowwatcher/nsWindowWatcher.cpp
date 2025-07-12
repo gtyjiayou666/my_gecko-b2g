@@ -6,7 +6,7 @@
 
 #include "nsWindowWatcher.h"
 #include "nsAutoWindowStateHelper.h"
-
+#include <iostream>
 #include "nsCRT.h"
 #include "nsDebug.h"
 #include "nsNetUtil.h"
@@ -283,6 +283,7 @@ nsWindowWatcher::OpenWindow(mozIDOMWindowProxy* aParent, const nsACString& aUrl,
                             const nsACString& aFeatures,
                             nsISupports* aArguments,
                             mozIDOMWindowProxy** aResult) {
+  std::cout << "启动OpenWindow" << std::endl;
   nsCOMPtr<nsIArray> argv = ConvertArgsToArray(aArguments);
 
   uint32_t argc = 0;
@@ -303,6 +304,7 @@ nsWindowWatcher::OpenWindow(mozIDOMWindowProxy* aParent, const nsACString& aUrl,
     nsCOMPtr<mozIDOMWindowProxy> win(bc->GetDOMWindow());
     win.forget(aResult);
   }
+  std::cout << "结束OpenWindow" << std::endl;
   return NS_OK;
 }
 
@@ -625,6 +627,7 @@ nsresult nsWindowWatcher::OpenWindowInternal(
     bool aDialog, bool aNavigate, nsIArray* aArgv, bool aIsPopupSpam,
     bool aForceNoOpener, bool aForceNoReferrer, PrintKind aPrintKind,
     nsDocShellLoadState* aLoadState, BrowsingContext** aResult) {
+  std::cout << "启动OpenWindowInternal" << std::endl;
   MOZ_ASSERT_IF(aForceNoReferrer, aForceNoOpener);
 
   nsresult rv = NS_OK;
@@ -1471,7 +1474,7 @@ nsresult nsWindowWatcher::OpenWindowInternal(
   if (aForceNoOpener && windowIsNew) {
     NS_RELEASE(*aResult);
   }
-
+  std::cout << "结束OpenWindowInternal" << std::endl;
   return NS_OK;
 }
 

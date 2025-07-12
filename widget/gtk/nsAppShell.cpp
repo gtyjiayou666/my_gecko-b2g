@@ -3,7 +3,7 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-
+#include <iostream>
 #include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -466,8 +466,10 @@ NS_IMETHODIMP nsAppShell::Run() {
   if (XRE_IsParentProcess()) {
     AddScreenWakeLockListener();
   }
+  std::cout << "启动nsAppShell::Run()" << std::endl;
 
   nsresult rv = nsBaseAppShell::Run();
+  std::cout << "结束nsAppShell::Run()" << std::endl;
 
   if (XRE_IsParentProcess()) {
     RemoveScreenWakeLockListener();

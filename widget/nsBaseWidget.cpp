@@ -87,7 +87,7 @@
 #include "gfxConfig.h"
 #include "nsView.h"
 #include "nsViewManager.h"
-
+#include <iostream>
 static mozilla::LazyLogModule sBaseWidgetLog("BaseWidget");
 
 #ifdef DEBUG
@@ -441,6 +441,7 @@ void nsBaseWidget::SetWidgetListener(nsIWidgetListener* aWidgetListener) {
 already_AddRefed<nsIWidget> nsBaseWidget::CreateChild(
     const LayoutDeviceIntRect& aRect, widget::InitData* aInitData,
     bool aForceUseIWidgetParent) {
+  std::cout << "nsBaseWidget：创建窗口" << std::endl;
   nsIWidget* parent = this;
   nsNativeWidget nativeParent = nullptr;
 

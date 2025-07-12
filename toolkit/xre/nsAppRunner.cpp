@@ -39,7 +39,9 @@
 #include "mozilla/glean/GleanPings.h"
 #include "mozilla/widget/TextRecognition.h"
 #include "BaseProfiler.h"
-
+#include <unistd.h>
+#include <iostream>
+#include "mozilla/widget/ScreenManager.h"
 #include "nsAppRunner.h"
 #include "mozilla/XREAppData.h"
 #include "mozilla/Bootstrap.h"
@@ -5453,6 +5455,14 @@ nsresult XREMain::XRE_mainRun() {
     }
 
     cmdLine = new nsCommandLine();
+    std::cout << "???????????????????????????????????????????????????" << std::endl;
+    std::cout << gArgc << std::endl;
+    for (int i = 0; i < gArgc; i++)
+    {
+      std::cout << gArgv[i] << std::endl;
+    }
+    
+    std::cout << "???????????????????????????????????????????????????" << std::endl;
 
     rv = cmdLine->Init(gArgc, gArgv, workingDir,
                        nsICommandLine::STATE_INITIAL_LAUNCH);
@@ -5466,7 +5476,6 @@ nsresult XREMain::XRE_mainRun() {
     NS_ENSURE_TRUE(appStartup, NS_ERROR_FAILURE);
 
     mDirProvider.DoStartup();
-
 #ifdef XP_WIN
     // It needs to be called on the main thread because it has to use
     // nsObserverService.
@@ -5622,6 +5631,39 @@ nsresult XREMain::XRE_mainRun() {
     }
 
     if (!AppShutdown::IsInOrBeyond(ShutdownPhase::AppShutdownConfirmed)) {
+      std::cout << "????????????????????????????????????????????????" << std::endl;
+      std::cout << "cmdLine->Run();" << std::endl;
+      /**
+       * gty
+       * 添加size参数
+       */
+      RefPtr<widget::Screen> screen = widget::ScreenManager::GetSingleton().GetPrimaryScreen();
+      // std::cout << screen->GetAvailRect().Width() << std::endl;
+      // std::cout << screen->GetAvailRect().Height() << std::endl;
+      int index_arg = 0;
+      const nsAutoString aflag(u"type");
+      rv = cmdLine->FindFlag(aflag, false, &index_arg);
+      NS_ENSURE_SUCCESS(rv, rv);
+      if (index_arg != -1) {
+        int arg_len = 0;
+        rv = cmdLine->GetLength(&arg_len);
+        NS_ENSURE_SUCCESS(rv, rv);
+        if (index_arg == arg_len - 1) {
+          return NS_ERROR_INVALID_ARG;
+        }
+        ++index_arg;
+        nsAutoString arg_type;
+        cmdLine->GetArgument(index_arg, arg_type);
+        if (arg_type.Equals(u"desktop", nsCaseInsensitiveStringComparator)) {
+          const nsAutoString sflag(u"size");
+          rv = cmdLine->FindFlag(sflag, false, &index_arg);
+          NS_ENSURE_SUCCESS(rv, rv);
+          if (index_arg == -1) {
+            cmdLine->AppendSize(screen->GetAvailRect().Width(), screen->GetAvailRect().Height());
+          }
+        }
+      }
+      std::cout << "????????????????????????????????????????????????" << std::endl;
       rv = cmdLine->Run();
       NS_ENSURE_SUCCESS_LOG(rv, NS_ERROR_FAILURE);
     }

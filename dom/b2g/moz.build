@@ -70,6 +70,11 @@ if CONFIG["MOZ_WIDGET_TOOLKIT"] == "gonk":
         "time",
     ]
 
+if CONFIG["MOZ_WIDGET_TOOLKIT"] == "gtk":
+    DIRS += [
+        "screenmanager",
+    ]
+
 if CONFIG["HAS_KOOST_MODULES"]:
     DIRS += [
         "kaiauth",

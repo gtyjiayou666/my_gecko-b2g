@@ -7,6 +7,11 @@
 #ifndef nsMimeTypeArray_h___
 #define nsMimeTypeArray_h___
 
+/**
+ * gty
+ * hdmi适配时不得不修改
+ */
+#include "nsPluginArray.h"
 #include "nsWrapperCache.h"
 #include "nsCOMPtr.h"
 #include "nsPIDOMWindow.h"

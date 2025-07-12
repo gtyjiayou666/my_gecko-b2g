@@ -11,6 +11,7 @@
 #include "mozilla/dom/DOMTypes.h"
 #include "mozilla/Logging.h"
 #include "mozilla/StaticPtr.h"
+#include <iostream>
 #ifdef MOZ_WAYLAND
 #  include "mozilla/WidgetUtilsGtk.h"
 #endif /* MOZ_WAYLAND */
@@ -78,7 +79,16 @@ template <class Range>
 void ScreenManager::CopyScreensToRemoteRange(Range aRemoteRange) {
   AutoTArray<dom::ScreenDetails, 4> screens;
   for (auto& screen : mScreenList) {
-    screens.AppendElement(screen->ToScreenDetails());
+    dom::ScreenDetails screend = screen->ToScreenDetails();
+    // x, y, width, height;
+    std::cout << "屏幕rect_:" << screend.rect().x << "," << screend.rect().y << "," << screend.rect().width << "," << screend.rect().height << std::endl;
+    std::cout << "屏幕rectDisplayPix_:" << screend.rectDisplayPix().x << "," << screend.rectDisplayPix().y << "," << screend.rectDisplayPix().width << "," << screend.rectDisplayPix().height << std::endl;
+    std::cout << "屏幕availRect_:" << screend.availRect().x << "," << screend.availRect().y << "," << screend.availRect().width << "," << screend.availRect().height << std::endl;
+    std::cout << "屏幕availRectDisplayPix_:" << screend.availRectDisplayPix().x << "," << screend.availRectDisplayPix().y << "," << screend.availRectDisplayPix().width << "," << screend.availRectDisplayPix().height << std::endl;
+    std::cout << "屏幕contentsScaleFactor_:" << screend.contentsScaleFactor().scale << std::endl;
+    std::cout << "屏幕defaultCSSScaleFactor_:" << screend.defaultCSSScaleFactor().scale << std::endl;
+    screens.AppendElement(screend);
+    // screens.AppendElement(screen->ToScreenDetails());
   }
   for (auto cp : aRemoteRange) {
     MOZ_LOG(sScreenLog, LogLevel::Debug,
@@ -146,6 +156,7 @@ already_AddRefed<Screen> ScreenManager::ScreenForRect(
   // Optimize for the common case. If the number of screens is only
   // one then just return the primary screen.
   if (mScreenList.Length() == 1) {
+    std::cout << "ScreenForRect()" << std::endl;
     return GetPrimaryScreen();
   }
 
@@ -212,10 +223,28 @@ already_AddRefed<Screen> ScreenManager::ScreenForRect(
   return ret.forget();
 }
 
+
+// The screen with the menubar/taskbar. This shouldn't be needed very
+// often.
+//
+already_AddRefed<Screen> ScreenManager::GetScreenByIndex(int32_t index) {
+  if (mScreenList.Length() < index + 1) {
+    MOZ_LOG(sScreenLog, LogLevel::Warning,
+            ("No screen available. This can happen in xpcshell."));
+    return MakeAndAddRef<Screen>(
+        LayoutDeviceIntRect(), LayoutDeviceIntRect(), 0, 0, 0,
+        DesktopToLayoutDeviceScale(), CSSToLayoutDeviceScale(), 96 /* dpi */,
+        Screen::IsPseudoDisplay::No, hal::ScreenOrientation::None, 0);
+  }
+  return do_AddRef(mScreenList[index]);
+}
+
+
 // The screen with the menubar/taskbar. This shouldn't be needed very
 // often.
 //
 already_AddRefed<Screen> ScreenManager::GetPrimaryScreen() {
+  std::cout << "屏幕数量:" << mScreenList.Length() << std::endl;
   if (mScreenList.IsEmpty()) {
     MOZ_LOG(sScreenLog, LogLevel::Warning,
             ("No screen available. This can happen in xpcshell."));
@@ -230,20 +259,23 @@ already_AddRefed<Screen> ScreenManager::GetPrimaryScreen() {
   }
 
   Screen* which = mScreenList[0].get();
-
+  /**
+   * gty
+   * 修改判断主显示器的条件。目前改为默认第一个为主显示器。后面再做修改
+   */
   // Find the surface has the most area.
-  uint32_t area = 0;
-  for (auto& screen : mScreenList) {
-    int32_t x, y, width, height;
-    x = y = width = height = 0;
-    screen->GetRectDisplayPix(&x, &y, &width, &height);
-    DesktopIntRect screenRect(x, y, width, height);
-    uint32_t tempArea = screenRect.Area();
-    if (tempArea > area) {
-      which = screen.get();
-      area = tempArea;
-    }
-  }
+  // uint32_t area = 0;
+  // for (auto& screen : mScreenList) {
+  //   int32_t x, y, width, height;
+  //   x = y = width = height = 0;
+  //   screen->GetRectDisplayPix(&x, &y, &width, &height);
+  //   DesktopIntRect screenRect(x, y, width, height);
+  //   uint32_t tempArea = screenRect.Area();
+  //   if (tempArea > area) {
+  //     which = screen.get();
+  //     area = tempArea;
+  //   }
+  // }
 
   return do_AddRef(which);
 }

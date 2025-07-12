@@ -18,6 +18,14 @@
 #include "mozilla/dom/FlashlightManager.h"
 #include "mozilla/dom/FlipManager.h"
 #include "mozilla/dom/InputMethod.h"
+/**
+ * gty
+ * 添加hdmi支持
+ */
+
+#if defined(MOZ_WIDGET_GTK)
+#include "mozilla/dom/screen/B2GScreenManager.h"
+#endif
 #include "mozilla/dom/TetheringManagerBinding.h"
 #include "mozilla/dom/NetworkStatsManagerBinding.h"
 
@@ -60,7 +68,6 @@
 #  include "mozilla/dom/EUiccManager.h"
 #endif
 #endif
-
 #include "mozilla/dom/usb/UsbManager.h"
 #include "DeviceStorage.h"
 #include "mozilla/dom/DeviceStorageAreaListener.h"
@@ -104,6 +111,11 @@ class B2G final : public DOMEventTargetHelper,
   static bool HasWebAppsManagePermission(JSContext* /* unused */,
                                          JSObject* aGlobal);
   AlarmManager* GetAlarmManager(ErrorResult& aRv);
+  
+#if defined(MOZ_WIDGET_GTK)
+  B2GScreenManager* GetB2GScreenManager(ErrorResult& aRv); 
+  static bool HasB2GScreenManagerSupport(JSContext* /* unused */, JSObject* aGlobal);
+#endif
   already_AddRefed<Promise> GetFlashlightManager(ErrorResult& aRv);
   already_AddRefed<Promise> GetFlipManager(ErrorResult& aRv);
   InputMethod* GetInputMethod(ErrorResult& aRv);
@@ -192,7 +204,7 @@ class B2G final : public DOMEventTargetHelper,
   static bool HasEUiccSupport(JSContext* /* unused */, JSObject* aGlobal);
 #endif
 #endif
-
+  
   UsbManager* GetUsbManager(ErrorResult& aRv);
 
   PowerSupplyManager* GetPowerSupplyManager(ErrorResult& aRv);
@@ -241,6 +253,10 @@ class B2G final : public DOMEventTargetHelper,
   nsTArray<nsWeakPtr> mDeviceStorageStores;
   RefPtr<ActivityUtils> mActivityUtils;
   RefPtr<AlarmManager> mAlarmManager;
+#if defined(MOZ_WIDGET_GTK)
+  RefPtr<B2GScreenManager> mB2GScreenManager;
+  // B2GScreenManager* mB2GScreenManager;
+#endif
   RefPtr<DeviceStorageAreaListener> mDeviceStorageAreaListener;
   RefPtr<FlashlightManager> mFlashlightManager;
   RefPtr<FlipManager> mFlipManager;

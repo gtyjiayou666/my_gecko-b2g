@@ -107,7 +107,7 @@ void nsWindow::DoDraw(void) {
     gDrawRequest = true;
     return;
   }
-
+  
   ScreenHelperGonk* screenHelper = ScreenHelperGonk::GetSingleton();
   uint32_t screenNums = screenHelper->GetNumberOfScreens();
 

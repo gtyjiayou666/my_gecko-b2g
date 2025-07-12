@@ -29,6 +29,13 @@ partial interface B2G {
   readonly attribute AlarmManager alarmManager;
 };
 
+
+[Exposed=Window]
+partial interface B2G {
+  [Throws, Pref="dom.screen.enabled", Func="B2G::HasB2GScreenManagerSupport"]
+  readonly attribute B2GScreenManager b2GScreenManager;
+};
+
 [Exposed=Window]
 partial interface B2G {
   [Throws, Pref="dom.downloads.enabled"]

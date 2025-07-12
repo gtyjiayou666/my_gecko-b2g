@@ -100,7 +100,7 @@
 #include "ScreenHelperGTK.h"
 #include "SystemTimeConverter.h"
 #include "WidgetUtilsGtk.h"
-
+#include <iostream>
 #ifdef ACCESSIBILITY
 #  include "mozilla/a11y/LocalAccessible.h"
 #  include "mozilla/a11y/Platform.h"
@@ -496,6 +496,8 @@ void nsWindow::DispatchResized() {
   LOG("nsWindow::DispatchResized() size [%d, %d]", (int)(mBounds.width),
       (int)(mBounds.height));
 
+  std::cout << "修改屏幕:" << (int)(mBounds.width) << ","
+            << (int)(mBounds.height) << std::endl;
   mNeedsDispatchSize = LayoutDeviceIntSize(-1, -1);
   if (mWidgetListener) {
     mWidgetListener->WindowResized(this, mBounds.width, mBounds.height);
@@ -992,6 +994,9 @@ void nsWindow::ResizeInt(const Maybe<LayoutDeviceIntPoint>& aMove,
   ConstrainSize(&aSize.width, &aSize.height);
   LOG("  ConstrainSize: w:%d h;%d\n", aSize.width, aSize.height);
 
+  std::cout << "执行ConstrainSize：" << "aSize.width = " << aSize.width
+            << ", aSize.height = " << aSize.height << std::endl;
+
   const bool resized = aSize != mLastSizeRequest || mBounds.Size() != aSize;
 #if MOZ_LOGGING
   LOG("  resized %d aSize [%d, %d] mLastSizeRequest [%d, %d] mBounds [%d, %d]",
@@ -1026,6 +1031,7 @@ void nsWindow::ResizeInt(const Maybe<LayoutDeviceIntPoint>& aMove,
 
   NativeMoveResize(moved, resized);
 
+  std::cout << "执行完NativeMoveResize：" << std::endl;
   // We optimistically assume size changes immediately in two cases:
   // 1. Override-redirect window: Size is controlled by only us.
   // 2. Managed window that has not not yet received a size-allocate event:
@@ -1048,10 +1054,14 @@ void nsWindow::ResizeInt(const Maybe<LayoutDeviceIntPoint>& aMove,
       mCompositorWidgetDelegate->NotifyClientSizeChanged(aSize);
     }
     DispatchResized();
+  } else {
+    std::cout << "没有执行DispatchResized：" << std::endl;
   }
 }
 
 void nsWindow::Resize(double aWidth, double aHeight, bool aRepaint) {
+  std::cout << "执行nsWindow::Resize：" << "aWidth = " << aWidth
+            << ", aHeight = " << aHeight << std::endl;
   LOG("nsWindow::Resize %f %f\n", aWidth, aHeight);
 
   double scale =
@@ -3232,6 +3242,7 @@ void nsWindow::RecomputeClientOffset(bool aNotify) {
   if (!IsTopLevelWindowType()) {
     return;
   }
+  std::cout << "重新计算ClientOffset" << std::endl;
 
   auto oldOffset = mClientOffset;
 
@@ -3247,6 +3258,7 @@ void nsWindow::RecomputeClientOffset(bool aNotify) {
 gboolean nsWindow::OnPropertyNotifyEvent(GtkWidget* aWidget,
                                          GdkEventProperty* aEvent) {
   if (aEvent->atom == gdk_atom_intern("_NET_FRAME_EXTENTS", FALSE)) {
+    std::cout << "执行nsWindow::OnPropertyNotifyEvent" << std::endl;
     RecomputeClientOffset(/* aNotify = */ true);
     return FALSE;
   }
@@ -3446,7 +3458,7 @@ void* nsWindow::GetNativeData(uint32_t aDataType) {
 nsresult nsWindow::SetTitle(const nsAString& aTitle) {
   if (!mShell) return NS_OK;
 
-    // convert the string into utf8 and set the title.
+  // convert the string into utf8 and set the title.
 #define UTF8_FOLLOWBYTE(ch) (((ch) & 0xC0) == 0x80)
   NS_ConvertUTF16toUTF8 titleUTF8(aTitle);
   if (titleUTF8.Length() > NS_WINDOW_TITLE_MAX_LENGTH) {
@@ -4078,7 +4090,7 @@ gboolean nsWindow::OnConfigureEvent(GtkWidget* aWidget,
     GetWindowRenderer()->FlushRendering(wr::RenderReasons::WIDGET);
     return FALSE;
   }
-
+  std::cout << "这里调用RecomputeClientOffset" << std::endl;
   mBounds.MoveTo(screenBounds.TopLeft());
   RecomputeClientOffset(/* aNotify = */ false);
 
@@ -4154,6 +4166,9 @@ void nsWindow::OnUnrealize() {
 void nsWindow::OnSizeAllocate(GtkAllocation* aAllocation) {
   LOG("nsWindow::OnSizeAllocate %d,%d -> %d x %d\n", aAllocation->x,
       aAllocation->y, aAllocation->width, aAllocation->height);
+  std::cout << "执行nsWindow::OnSizeAllocate" << aAllocation->x << ","
+            << aAllocation->y << "->" << aAllocation->width << "x"
+            << aAllocation->height << std::endl;
 
   // Client offset are updated by _NET_FRAME_EXTENTS on X11 when system titlebar
   // is enabled. In either cases (Wayland or system titlebar is off on X11)
@@ -5050,7 +5065,7 @@ void nsWindow::OnScrollEvent(GdkEventScroll* aEvent) {
         if (StaticPrefs::apz_gtk_pangesture_enabled() &&
             gtk_check_version(3, 20, 0) == nullptr) {
           static auto sGdkEventIsScrollStopEvent =
-              (gboolean(*)(const GdkEvent*))dlsym(
+              (gboolean (*)(const GdkEvent*))dlsym(
                   RTLD_DEFAULT, "gdk_event_is_scroll_stop_event");
 
           LOG("[%d] pan smooth event dx=%f dy=%f inprogress=%d\n", aEvent->time,
@@ -5368,6 +5383,7 @@ void nsWindow::OnCompositedChanged() {
 }
 
 void nsWindow::OnScaleChanged(bool aNotify) {
+  std::cout << "执行nsWindow::OnScaleChanged" << std::endl;
   if (!IsTopLevelWindowType()) {
     return;
   }
@@ -6534,6 +6550,8 @@ void nsWindow::NativeMoveResize(bool aMoved, bool aResized) {
 
   LOG("nsWindow::NativeMoveResize move %d resize %d to %d,%d -> %d x %d\n",
       aMoved, aResized, topLeft.x, topLeft.y, size.width, size.height);
+  printf("nsWindow::NativeMoveResize move %d resize %d to %d,%d -> %d x %d\n",
+         aMoved, aResized, topLeft.x, topLeft.y, size.width, size.height);
 
   if (aResized && !AreBoundsSane()) {
     LOG("  bounds are insane, hidding the window");
@@ -6573,12 +6591,6 @@ void nsWindow::NativeMoveResize(bool aMoved, bool aResized) {
     }
     if (aResized) {
       gtk_window_resize(GTK_WINDOW(mShell), size.width, size.height);
-      if (mIsDragPopup) {
-        // DND window is placed inside container so we need to make hard size
-        // request to ensure parent container is resized too.
-        gtk_widget_set_size_request(GTK_WIDGET(mShell), size.width,
-                                    size.height);
-      }
     }
   }
 
@@ -7589,11 +7601,11 @@ void nsWindow::SetWindowDecoration(BorderStyle aStyle) {
 
   if (wasVisible) gdk_window_show(window);
 
-    // For some window managers, adding or removing window decorations
-    // requires unmapping and remapping our toplevel window.  Go ahead
-    // and flush the queue here so that we don't end up with a BadWindow
-    // error later when this happens (when the persistence timer fires
-    // and GetWindowPos is called)
+  // For some window managers, adding or removing window decorations
+  // requires unmapping and remapping our toplevel window.  Go ahead
+  // and flush the queue here so that we don't end up with a BadWindow
+  // error later when this happens (when the persistence timer fires
+  // and GetWindowPos is called)
 #ifdef MOZ_X11
   if (GdkIsX11Display()) {
     XSync(GDK_DISPLAY_XDISPLAY(gdk_display_get_default()), X11False);
@@ -8085,6 +8097,7 @@ static void widget_unrealize_cb(GtkWidget* widget) {
 }
 
 static void size_allocate_cb(GtkWidget* widget, GtkAllocation* allocation) {
+  std::cout << "监听到scale_changed_cb信号" << std::endl;
   RefPtr<nsWindow> window = get_window_for_gtk_widget(widget);
   if (!window) {
     return;
@@ -9599,11 +9612,13 @@ nsresult nsWindow::GetSystemFont(nsCString& aFontName) {
 
 already_AddRefed<nsIWidget> nsIWidget::CreateTopLevelWindow() {
   nsCOMPtr<nsIWidget> window = new nsWindow();
+  std::cout << "返回一个窗口CreateTopLevelWindow" << std::endl;
   return window.forget();
 }
 
 already_AddRefed<nsIWidget> nsIWidget::CreateChildWindow() {
   nsCOMPtr<nsIWidget> window = new nsWindow();
+  std::cout << "返回一个窗口CreateChildWindow" << std::endl;
   return window.forget();
 }
 
