@@ -1,0 +1,83 @@
+#include "nsISupports.idl"
+#include "nsISidl.idl"
+
+[scriptable, uuid(40c07250-b984-4ba7-8420-85d27a02ebf6)]
+interface nsIAppsServiceDelegate : nsISupports {
+    bool hasDeepLinks(in AString aUrl);
+    AString getManifestUrlByScopeUrl(in AString aUrl);
+    void onBoot(in AString aManifestUrl, in AString aValue);
+    void onBootDone();
+    void onClear(in AString aManifestUrl, in AString aType, in AString aValue, in nsISidlDefaultResponse callback);
+    void onInstall(in AString aManifestUrl, in AString aValue, in nsISidlDefaultResponse callback);
+    void onUpdate(in AString aManifestUrl, in AString aValue, in nsISidlDefaultResponse callback);
+    void onUninstall(in AString aManifestUrl, in nsISidlDefaultResponse callback);
+    void onLaunch(in AString aManifestUrl);
+    AString getUa();
+};
+
+[scriptable, uuid(b8b76495-4541-4018-9903-c8904f5d36d6)]
+interface nsIPowerManagerDelegate : nsISupports {
+    void setScreenEnabled(in bool enabled, in bool isExternalScreen);
+};
+
+[scriptable, uuid(9ccd844e-12a5-11eb-925e-bb3bde26260a)]
+interface nsIPreferenceDelegate : nsISupports {
+    int32_t getInt(in AString aKey);
+    AString getChar(in AString aKey);
+    bool getBool(in AString aKey);
+    void setInt(in AString aKey, in int32_t aValue);
+    void setChar(in AString aKey, in AString aValue);
+    void setBool(in AString aKey, in bool aValue);
+};
+
+[scriptable, uuid(0926dc56-fd47-4579-9cbc-3b1c746b2f65)]
+interface nsIMobileManagerDelegate : nsISupports {
+    const unsigned long CIT_IMEI    = 0;
+    const unsigned long CIT_IMSI    = 1;
+    const unsigned long CIT_MSISDN  = 2;
+
+    AString getCardInfo(in long id, in long type);
+    void getMncMcc(in long id, in bool isSim, out AString mnc, out AString mcc);
+};
+
+[scriptable, uuid(39bff5db-afd9-4f24-9166-12749fbaf0da)]
+interface nsINetworkManagerDelegate : nsISupports {
+    void getNetworkInfo(out long state, out long type);
+};
+
+[scriptable, uuid(23dcf3a6-97a6-450c-b27e-a5c1c7a03733)]
+interface nsISimContactInfo : nsISupports {
+    attribute AString id;
+    attribute AString tel;
+    attribute AString email;
+    attribute AString name;
+    attribute AString category;
+};
+
+[scriptable, uuid(d8dccf0f-de80-4216-9bee-7403e4ac0373)]
+interface nsIGeckoBridge : nsISupports {
+    // Register a apps service delegate that will be called by the apps service.
+    void setAppsServiceDelegate(in nsIAppsServiceDelegate delegate, in nsISidlDefaultResponse callback);
+
+    // Register a power manager delegate that will be called by the power manager service.
+    void setPowerManagerDelegate(in nsIPowerManagerDelegate delegate, in nsISidlDefaultResponse callback);
+
+    // Register a preference delegate that will be called by the power deviceconfig service.
+    void setPreferenceDelegate(in nsIPreferenceDelegate delegate, in nsISidlDefaultResponse callback);
+
+    // Register a card info manager delegate that will be called by the fota service.
+    void setMobileManagerDelegate(in nsIMobileManagerDelegate delegate, in nsISidlDefaultResponse callback);
+    // Register a network manager delegate that will be called by the fota service.
+    void setNetworkManagerDelegate(in nsINetworkManagerDelegate delegate, in nsISidlDefaultResponse callback);
+
+    // Preferences related methods. Call these when a watched preference changes.
+    void charPrefChanged(in ACString aPrefName, in ACString aValue, in nsISidlDefaultResponse callback);
+    void intPrefChanged(in ACString aPrefName, in long aValue, in nsISidlDefaultResponse callback);
+    void boolPrefChanged(in ACString aPrefName, in boolean aValue, in nsISidlDefaultResponse callback);
+
+    // Register a token bound to a (url, permissions) context.
+    void registerToken(in AString token, in AString url, in Array<AString> settings, in nsISidlDefaultResponse callback);
+
+    // Import SimContactInfo to contacts DB.
+    void importSimContacts(in Array<nsISimContactInfo> contacts, in nsISidlDefaultResponse callback);
+};

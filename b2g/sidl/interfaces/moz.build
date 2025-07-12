@@ -1,0 +1,9 @@
+XPIDL_SOURCES += [
+    "nsIContacts.idl",
+    "nsIGeckoBridge.idl",
+    "nsISettings.idl",
+    "nsISidl.idl",
+    "nsITime.idl",
+]
+
+XPIDL_MODULE = "sidl"

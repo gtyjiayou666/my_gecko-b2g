@@ -1,0 +1,21 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+#include "nsIIccService.idl"
+
+%{C++
+#define GONK_ICC_SERVICE_CONTRACTID \
+        "@mozilla.org/icc/gonkiccservice;1"
+%}
+
+[scriptable, uuid(3e2ba64e-123d-4a6a-90ab-ac8df74f3837)]
+interface nsIGonkIccService : nsIIccService
+{
+  void notifyStkCommand(in unsigned long aServiceId, in nsIStkProactiveCmd aStkcommand);
+  void notifyStkSessionEnd(in unsigned long aServiceId);
+  void notifyCardStateChanged(in unsigned long aServiceId, in unsigned long aCardState, in unsigned long aPin2CardState);
+  void notifyIccInfoChanged(in unsigned long aServiceId, in jsval aIccInfo);
+  void notifyImsiChanged(in unsigned long aServiceId, in AString aImsi);
+  void notifyIsimInfoChanged(in unsigned long aServiceId, in jsval aIsimInfo);
+};

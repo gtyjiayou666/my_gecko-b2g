@@ -1,0 +1,77 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+. "$topsrcdir/build/mozconfig.common"
+
+# For Android builds in TaskCluster, the system image is Debian, and
+# we use the Java JRE/JDK from the system.  We use a custom clang for
+# the host compiler. Make sure clang uses the c++ headers included with
+# clang, rather than the system headers which leads to incompatibility
+# later (when linking against the clang-provided libstdc++).
+# TODO???
+HOST_CC="$MOZ_FETCHES_DIR/clang/bin/clang --gcc-toolchain=$MOZ_FETCHES_DIR/clang"
+HOST_CXX="$MOZ_FETCHES_DIR/clang/bin/clang++ --gcc-toolchain=$MOZ_FETCHES_DIR/clang"
+
+# Build Boot2Gecko
+ac_add_options --enable-application=b2g
+ac_add_options --with-app-basename=b2g
+
+if [ -z "$NO_NDK" -a -z "$USE_ARTIFACT" ]; then
+    # We use our own clang instead of the NDK's clang.
+    CC="$MOZ_FETCHES_DIR/clang/bin/clang"
+    CXX="$MOZ_FETCHES_DIR/clang/bin/clang++"
+    ac_add_options --with-android-ndk="$MOZ_FETCHES_DIR/android-ndk"
+    # Make sure that any host binaries we build use whatever libraries clang
+    # linked against, rather than what's on the system.
+    mk_add_options "export LD_LIBRARY_PATH=$MOZ_FETCHES_DIR/clang/lib"
+    # Enable static analysis plugin
+    export ENABLE_CLANG_PLUGIN=1
+fi
+
+ac_add_options --enable-update-channel=${MOZ_UPDATE_CHANNEL}
+
+if [ -n "$TASKCLUSTER_PGO_PROFILE_USE" -a -z "$USE_ARTIFACT" ]; then
+    export MOZ_LTO=cross
+    export LLVM_PROFDATA="$MOZ_FETCHES_DIR/clang/bin/llvm-profdata"
+
+    ac_add_options --enable-profile-use
+
+    ac_add_options --with-pgo-profile-path=${MOZ_FETCHES_DIR}/merged.profdata
+fi
+
+###############################################################################
+###############################################################################
+###############################################################################
+
+# B2G-specific options
+ac_add_options --with-gonk-gfx
+ac_add_options --with-gonk="$MOZ_FETCHES_DIR/b2g-sysroot/"
+ac_add_options --enable-b2g-camera
+ac_add_options --enable-b2g-ril
+ac_add_options --enable-b2g-fm
+ac_add_options --enable-forkserver
+
+# We don't use the profiler
+ac_add_options --disable-profiling
+
+# Only for x86-64
+ac_add_options --enable-wasm-simd
+
+# sandbox includes non existent arm64 files
+ac_add_options --disable-sandbox
+
+# Compiler/Linker options
+
+# Since we use lld we need to disable elf-hack
+ac_add_options --enable-linker=lld
+ac_add_options --disable-elf-hack
+
+###############################################################################
+###############################################################################
+###############################################################################
+
+# Package js shell.
+export MOZ_PACKAGE_JSSHELL=1
+
+JS_BINARY="$topsrcdir/mobile/android/config/js_wrapper.sh"

@@ -1,0 +1,60 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+---
+job-defaults:
+    description: "Boot2Gecko emulator toolchain build"
+    run-on-projects: ['kaios']
+    worker:
+        max-run-time: 900
+        docker-image: {in-tree: debian10-amd64-build}
+
+linux64-b2g-build:
+    treeherder:
+        symbol: TL(b2g-build)
+    worker-type: b-linux-large
+    worker:
+        max-run-time: 4800
+    run:
+        script: build-b2g-emulator.sh
+        toolchain-artifact: public/build/b2g-build.tar
+    when:
+        files-changed:
+            - 'taskcluster/scripts/misc/create-b2g-sysroot.sh'
+    fetches:
+        fetch:
+            - api-daemon
+            - B2G
+            - b2g-manifests
+            - gonk-misc
+        toolchain:
+            - android-ndk-b2g-linux
+            - linux64-rust-android
+
+linux64-b2g-emulator:
+    treeherder:
+        symbol: TL(b2g-emulator)
+    worker-type: b-linux
+    run:
+        script: extract-b2g-tarball.sh
+        arguments:
+            - b2g-emulator.tar.zst
+        toolchain-artifact: public/build/b2g-emulator.tar.zst
+    fetches:
+        toolchain:
+            - linux64-b2g-build
+
+linux64-b2g-sysroot:
+    attributes:
+        local-toolchain: true
+    treeherder:
+        symbol: TL(b2g-sysroot)
+    worker-type: b-linux
+    run:
+        script: extract-b2g-tarball.sh
+        arguments:
+            - b2g-sysroot.tar.zst
+        toolchain-artifact: public/build/b2g-sysroot.tar.zst
+    fetches:
+        toolchain:
+            - linux64-b2g-build

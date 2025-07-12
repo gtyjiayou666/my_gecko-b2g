@@ -1,0 +1,2 @@
+#DataCallService.js
+category profile-after-change DataCallService @mozilla.org/datacallservice;1 process=main

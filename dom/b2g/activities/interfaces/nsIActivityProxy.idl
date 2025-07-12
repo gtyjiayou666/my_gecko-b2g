@@ -1,0 +1,27 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+#include "nsISupports.idl"
+
+[scriptable, uuid(85e14af3-fdfd-4720-9219-05c4e07a76ef), function]
+interface nsIActivityStartCallback : nsISupports
+{
+  [implicit_jscontext]
+  void onStart(in nsresult status, in jsval result);
+};
+
+/*
+ * nsIActivityProxy is a helper of passing requests from WebActivity.cpp to
+ * ActivitiesService.sys.mjs, receiving results from ActivitiesService and send it
+ * back to WebActivity.
+ */
+[scriptable, uuid(3cd334b4-01f5-11eb-a4f3-d70a879aa1d9)]
+interface nsIActivityProxy : nsISupports
+{
+  AString create(in nsISupports owner, in jsval options, in ACString origin);
+
+  void start(in AString id, in nsIActivityStartCallback callback);
+
+  void cancel(in AString id);
+};

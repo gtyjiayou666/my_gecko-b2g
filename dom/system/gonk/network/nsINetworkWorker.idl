@@ -1,0 +1,24 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+#include "nsISupports.idl"
+
+[scriptable, uuid(98e31d3b-6cad-4cab-b4b3-4afff566ea65)]
+interface nsINetworkEventListener : nsISupports {
+  void onEvent(in jsval result);
+};
+
+[scriptable, uuid(f9d9c694-0aac-4f9a-98ac-7788f954239a)]
+interface nsINetworkWorker : nsISupports {
+  void start(in nsINetworkEventListener listener);
+  void shutdown();
+  [implicit_jscontext]
+  void postMessage(in jsval options);
+};
+
+%{C++
+#define NS_NETWORKWORKER_CID \
+  {0x6df093e1, 0x8127, 0x4fa7, {0x90, 0x13, 0xa3, 0xaa, 0xa7, 0x79, 0xbb, 0xdd}}
+#define NS_NETWORKWORKER_CONTRACTID "@mozilla.org/network/worker;1"
+%}

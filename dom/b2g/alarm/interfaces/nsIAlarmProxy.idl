@@ -1,0 +1,29 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+#include "nsISupports.idl"
+
+[scriptable, uuid(065684e1-157d-465c-9705-a6f60ddbe456), function]
+interface nsIAlarmAddCallback : nsISupports
+{
+  [implicit_jscontext]
+  void onAdd(in nsresult status, in jsval result);
+};
+
+[scriptable, uuid(cb0f4c89-d219-4245-9a9f-54d4ce3e4ac6), function]
+interface nsIAlarmGetAllCallback : nsISupports
+{
+  [implicit_jscontext]
+  void onGetAll(in nsresult status, in jsval result);
+};
+
+[scriptable, uuid(736b46dc-9bea-4f75-a567-0bec41980f0c)]
+interface nsIAlarmProxy : nsISupports
+{
+  void getAll(in ACString url, in nsIAlarmGetAllCallback callback);
+  void add(in ACString url,
+           in jsval options,
+           in nsIAlarmAddCallback callback);
+  void remove(in ACString url, in int32_t id);
+};

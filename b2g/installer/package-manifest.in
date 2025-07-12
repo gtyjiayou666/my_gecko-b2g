@@ -1,0 +1,422 @@
+; This Source Code Form is subject to the terms of the Mozilla Public
+; License, v. 2.0. If a copy of the MPL was not distributed with this
+; file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+; Package file for the B2G build.
+;
+; File format:
+;
+; [] designates a toplevel component. Example: [xpcom]
+; - in front of a file specifies it to be removed from the destination
+; * wildcard support to recursively copy the entire directory
+; ; file comment
+;
+
+#filter substitution
+
+#ifdef XP_MACOSX
+; Mac bundle stuff
+@APPNAME@/Contents/Info.plist
+@APPNAME@/Contents/PkgInfo
+@APPNAME@/Contents/Plug-Ins/
+@RESPATH@/@MOZ_APP_NAME@.icns
+@RESPATH@/@LPROJ_ROOT@.lproj/*
+#endif
+
+[@AB_CD@]
+@RESPATH@/chrome/@AB_CD@@JAREXT@
+@RESPATH@/chrome/@AB_CD@.manifest
+@RESPATH@/@PREF_DIR@/b2g-l10n.js
+@RESPATH@/localization/*
+#ifdef MOZ_UPDATER
+@RESPATH@/update.locale
+@RESPATH@/updater.ini
+#endif
+@RESPATH@/dictionaries/*
+@RESPATH@/hyphenation/*
+#ifdef XP_WIN32
+@BINPATH@/uninstall/helper.exe
+#endif
+
+#ifdef PACKAGE_GAIA
+[gaia]
+@BINPATH@/gaia/*
+@BINPATH@/api-daemon/*
+#endif
+
+[xpcom]
+@RESPATH@/dependentlibs.list
+#ifndef MOZ_STATIC_JS
+@BINPATH@/@DLL_PREFIX@mozjs@DLL_SUFFIX@
+#endif
+#ifndef MOZ_FOLD_LIBS
+@BINPATH@/@DLL_PREFIX@plc4@DLL_SUFFIX@
+@BINPATH@/@DLL_PREFIX@plds4@DLL_SUFFIX@
+@BINPATH@/@DLL_PREFIX@nspr4@DLL_SUFFIX@
+#endif
+#ifdef MOZ_DMD
+@BINPATH@/@DLL_PREFIX@dmd@DLL_SUFFIX@
+#endif
+#ifdef XP_MACOSX
+@BINPATH@/XUL
+#else
+@BINPATH@/@DLL_PREFIX@xul@DLL_SUFFIX@
+#endif
+#ifdef XP_MACOSX
+@BINPATH@/@MOZ_CHILD_PROCESS_NAME@.app/
+#else
+@BINPATH@/@MOZ_CHILD_PROCESS_NAME@
+#endif
+#ifdef XP_WIN32
+#if MOZ_PACKAGE_MSVC_DLLS
+@BINPATH@/@MSVC_C_RUNTIME_DLL@
+@BINPATH@/@MSVC_CXX_RUNTIME_DLL@
+#endif
+#if MOZ_PACKAGE_WIN_UCRT_DLLS
+@BINPATH@/api-ms-win-*.dll
+@BINPATH@/ucrtbase.dll
+#endif
+#endif
+#if ENABLE_INTL_API
+#if !defined(MOZ_SYSTEM_ICU) || MOZ_SYSTEM_ICU != 1
+@RESPATH@/@ICU_DATA_FILE@
+#endif
+#endif
+#ifdef MOZ_SHARED_MOZGLUE
+@BINPATH@/@DLL_PREFIX@mozglue@DLL_SUFFIX@
+#endif
+#ifdef MOZ_GTK
+@BINPATH@/@DLL_PREFIX@mozgtk@DLL_SUFFIX@
+#endif
+#ifdef MOZ_WAYLAND
+@BINPATH@/@DLL_PREFIX@mozwayland@DLL_SUFFIX@
+#endif
+
+@RESPATH@/update.locale
+
+[browser]
+; [Base Browser Files]
+#ifndef XP_UNIX
+@BINPATH@/@MOZ_APP_NAME@.exe
+#else
+@BINPATH@/@MOZ_APP_NAME@
+#endif
+@RESPATH@/application.ini
+@RESPATH@/platform.ini
+#ifndef MOZ_FOLD_LIBS
+@BINPATH@/@DLL_PREFIX@mozsqlite3@DLL_SUFFIX@
+#endif
+@BINPATH@/@DLL_PREFIX@lgpllibs@DLL_SUFFIX@
+@BINPATH@/@DLL_PREFIX@gkcodecs@DLL_SUFFIX@
+@RESPATH@/ua-update.json
+#ifdef XP_UNIX
+#ifndef XP_MACOSX
+@RESPATH@/run-mozilla.sh
+#endif
+#endif
+#ifdef MOZ_WEBSPEECH_MODELS
+@RESPATH@/models/
+#endif
+#ifdef MOZ_GTK
+@RESPATH@/chrome/icons/default/default16.png
+@RESPATH@/chrome/icons/default/default32.png
+@RESPATH@/chrome/icons/default/default48.png
+@RESPATH@/chrome/icons/default/default64.png
+@RESPATH@/chrome/icons/default/default128.png
+@RESPATH@/chrome/icons/default/default256.png
+#endif
+
+; [Components]
+#ifdef ACCESSIBILITY
+#ifdef XP_WIN32
+@BINPATH@/AccessibleMarshal.dll
+#endif
+#endif
+
+; JavaScript components
+#ifdef ENABLE_TV
+@RESPATH@/components/TVSimulatorService.js
+@RESPATH@/components/TVSimulatorService.manifest
+#endif
+#ifdef MOZ_PRESENTATION
+@RESPATH@/components/PresentationDeviceInfoManager.manifest
+@RESPATH@/components/PresentationDeviceInfoManager.js
+@RESPATH@/components/BuiltinProviders.manifest
+@RESPATH@/components/PresentationControlService.js
+@RESPATH@/components/PresentationDataChannelSessionTransport.js
+@RESPATH@/components/PresentationDataChannelSessionTransport.manifest
+#endif
+@RESPATH@/components/servicesComponents.manifest
+@RESPATH@/components/servicesSettings.manifest
+
+#ifdef MOZ_SECUREELEMENT
+@RESPATH@/components/ACEService.js
+@RESPATH@/components/ACEService.manifest
+@RESPATH@/components/EseConnector.js
+@RESPATH@/components/EseConnector.manifest
+@RESPATH@/components/GPAccessRulesManager.js
+@RESPATH@/components/GPAccessRulesManager.manifest
+@RESPATH@/components/SecureElement.js
+@RESPATH@/components/SecureElement.manifest
+@RESPATH@/components/UiccConnector.js
+@RESPATH@/components/UiccConnector.manifest
+#endif
+
+; Camera
+#ifdef MOZ_B2G_CAMERA
+@RESPATH@/components/CameraTestHardware.js
+@RESPATH@/components/CameraTestHardware.manifest
+#endif // MOZ_B2G_CAMERA
+
+@RESPATH@/components/extensions.manifest
+
+#ifdef MOZ_UPDATER
+@RESPATH@/components/nsUpdateService.manifest
+@RESPATH@/components/nsUpdateService.js
+@RESPATH@/components/nsUpdateServiceStub.js
+#endif
+@RESPATH@/components/ProcessSingleton.manifest
+#ifdef MOZ_NFC
+@RESPATH@/components/nsNfc.manifest
+@RESPATH@/components/nsNfc.js
+@RESPATH@/components/Nfc.manifest
+@RESPATH@/components/Nfc.js
+@RESPATH@/components/NfcContentHelper.manifest
+@RESPATH@/components/NfcContentHelper.js
+#endif
+#ifdef MOZ_SECUREELEMENT
+@RESPATH@/components/DOMSecureElement.manifest
+@RESPATH@/components/DOMSecureElement.js
+@RESPATH@/components/DOMLoaderService.manifest
+@RESPATH@/components/DOMLoaderService.js
+#endif
+#ifdef MOZ_SERVICES_SYNC
+@RESPATH@/components/SyncComponents.manifest
+@RESPATH@/components/Weave.js
+@RESPATH@/components/WeaveCrypto.manifest
+@RESPATH@/components/WeaveCrypto.js
+#endif
+@RESPATH@/components/servicesComponents.manifest
+@RESPATH@/components/cryptoComponents.manifest
+@RESPATH@/components/TelemetryStartup.manifest
+
+#ifdef MOZ_B2G_RIL
+@RESPATH@/components/DataCallManager.manifest
+@RESPATH@/components/DataCallService.manifest
+@RESPATH@/components/RadioInterfaceLayer.manifest
+@RESPATH@/components/TelephonyService.manifest
+@RESPATH@/components/VoicemailService.manifest
+#endif
+
+@RESPATH@/components/Push.manifest
+@RESPATH@/components/l10n-registry.manifest
+
+; Modules
+@RESPATH@/modules/*
+@RESPATH@/actors/*
+
+; ANGLE on Win32
+#ifdef XP_WIN32
+#ifndef HAVE_64BIT_BUILD
+@BINPATH@/libEGL.dll
+@BINPATH@/libGLESv2.dll
+#endif
+#endif
+
+; [Browser Chrome Files]
+
+@RESPATH@/chrome/toolkit@JAREXT@
+@RESPATH@/chrome/toolkit.manifest
+
+; DevTools
+@RESPATH@/chrome/devtools@JAREXT@
+@RESPATH@/chrome/devtools.manifest
+
+; [Default Preferences]
+; All the pref files must be part of base to prevent migration bugs
+@RESPATH@/@PREF_DIR@/b2g.js
+#ifdef HAS_KOOST_MODULES
+@RESPATH@/@PREF_DIR@/koost.js
+#endif
+@RESPATH@/greprefs.js
+@RESPATH@/defaults/autoconfig/prefcalls.js
+
+; Services (gre) prefs
+#ifdef MOZ_SERVICES_SYNC
+@RESPATH@/defaults/pref/services-sync.js
+#endif
+
+#ifdef B2G_ZAXIS_GEOLOCATION
+@RESPATH@/defaults/zaxis/*
+#endif
+
+; [Layout Engine Resources]
+; Style Sheets, Graphics and other Resources used by the layout engine.
+@RESPATH@/res/cur_crosshair_26px.png
+@RESPATH@/res/cur_default_26px.png
+@RESPATH@/res/cur_pointer_26px.png
+@RESPATH@/res/cur_progress_26px.png
+@RESPATH@/res/cur_text_26px.png
+@RESPATH@/res/cur_vertical_text_26px.png
+@RESPATH@/res/cur_wait_26px.png
+@RESPATH@/res/EditorOverride.css
+@RESPATH@/res/contenteditable.css
+@RESPATH@/res/designmode.css
+@RESPATH@/res/table-add-column-after-active.gif
+@RESPATH@/res/table-add-column-after-hover.gif
+@RESPATH@/res/table-add-column-after.gif
+@RESPATH@/res/table-add-column-before-active.gif
+@RESPATH@/res/table-add-column-before-hover.gif
+@RESPATH@/res/table-add-column-before.gif
+@RESPATH@/res/table-add-row-after-active.gif
+@RESPATH@/res/table-add-row-after-hover.gif
+@RESPATH@/res/table-add-row-after.gif
+@RESPATH@/res/table-add-row-before-active.gif
+@RESPATH@/res/table-add-row-before-hover.gif
+@RESPATH@/res/table-add-row-before.gif
+@RESPATH@/res/table-remove-column-active.gif
+@RESPATH@/res/table-remove-column-hover.gif
+@RESPATH@/res/table-remove-column.gif
+@RESPATH@/res/table-remove-row-active.gif
+@RESPATH@/res/table-remove-row-hover.gif
+@RESPATH@/res/table-remove-row.gif
+@RESPATH@/res/grabber.gif
+#ifdef XP_MACOSX
+@RESPATH@/res/cursors/*
+#endif
+@RESPATH@/res/fonts/*
+@RESPATH@/res/dtd/*
+@RESPATH@/res/language.properties
+@RESPATH@/res/locale/layout/HtmlForm.properties
+@RESPATH@/res/locale/layout/MediaDocument.properties
+@RESPATH@/res/locale/layout/xmlparser.properties
+@RESPATH@/res/locale/dom/dom.properties
+#ifdef XP_MACOSX
+@RESPATH@/res/MainMenu.nib/
+#endif
+
+; Content-accessible resources.
+@RESPATH@/contentaccessible/*
+
+; svg
+@RESPATH@/res/svg.css
+
+; [Personal Security Manager]
+;
+@BINPATH@/@DLL_PREFIX@nssckbi@DLL_SUFFIX@
+@BINPATH@/@DLL_PREFIX@nss3@DLL_SUFFIX@
+#ifndef MOZ_FOLD_LIBS
+@BINPATH@/@DLL_PREFIX@nssutil3@DLL_SUFFIX@
+@BINPATH@/@DLL_PREFIX@smime3@DLL_SUFFIX@
+@BINPATH@/@DLL_PREFIX@ssl3@DLL_SUFFIX@
+#endif
+@BINPATH@/@DLL_PREFIX@softokn3@DLL_SUFFIX@
+#if defined(XP_LINUX) && !defined(ANDROID)
+@BINPATH@/@DLL_PREFIX@freeblpriv3@DLL_SUFFIX@
+#else
+@BINPATH@/@DLL_PREFIX@freebl3@DLL_SUFFIX@
+#endif
+#ifndef CROSS_COMPILE
+@BINPATH@/@DLL_PREFIX@freebl3.chk
+@BINPATH@/@DLL_PREFIX@softokn3.chk
+#endif
+@RESPATH@/chrome/pippki@JAREXT@
+@RESPATH@/chrome/pippki.manifest
+
+; For process sandboxing
+#if defined(MOZ_SANDBOX)
+#if defined(XP_WIN)
+@BINPATH@/@DLL_PREFIX@sandboxbroker@DLL_SUFFIX@
+#elif defined(XP_LINUX)
+@BINPATH@/@DLL_PREFIX@mozsandbox@DLL_SUFFIX@
+#endif
+#endif
+
+; for Solaris SPARC
+#ifdef SOLARIS
+bin/libfreebl_32fpu_3.chk
+bin/libfreebl_32fpu_3.so
+bin/libfreebl_32int_3.chk
+bin/libfreebl_32int_3.so
+bin/libfreebl_32int64_3.chk
+bin/libfreebl_32int64_3.so
+#endif
+
+; [Updater]
+;
+#ifdef MOZ_UPDATER
+#ifdef XP_MACOSX
+@BINPATH@/updater.app/
+#else
+@BINPATH@/updater@BIN_SUFFIX@
+#endif
+#endif
+
+; [Crash Reporter]
+;
+#ifdef MOZ_CRASHREPORTER
+#ifdef XP_MACOSX
+@BINPATH@/crashreporter.app/
+#else
+@BINPATH@/crashreporter@BIN_SUFFIX@
+@RESPATH@/crashreporter.ini
+#ifdef XP_UNIX
+@RESPATH@/Throbber-small.gif
+#endif
+#endif
+#endif
+
+[b2g]
+#ifndef MOZ_WIDGET_GONK
+#ifdef XP_WIN32
+@BINPATH@/xpcshell.exe
+@BINPATH@/ssltunnel.exe
+#else
+@BINPATH@/xpcshell
+@BINPATH@/ssltunnel
+#endif
+#endif
+@RESPATH@/chrome/chrome@JAREXT@
+@RESPATH@/chrome/chrome.manifest
+#if defined(ENABLE_WEBDRIVER) || !defined(MOZ_WIDGET_GONK)
+@RESPATH@/chrome/remote@JAREXT@
+@RESPATH@/chrome/remote.manifest
+#endif
+
+#ifndef MOZ_WIDGET_GONK
+@RESPATH@/components/SimulatorScreen.js
+#endif
+
+#ifdef XP_MACOSX
+@BINPATH@/@DLL_PREFIX@plugin_child_interpose@DLL_SUFFIX@
+#endif
+
+#ifdef PACKAGE_MOZTT
+@RESPATH@/fonts/*
+#endif
+
+; media
+#ifdef MOZ_EME
+@RESPATH@/gmp-clearkey/0.1/@DLL_PREFIX@clearkey@DLL_SUFFIX@
+@RESPATH@/gmp-clearkey/0.1/clearkey.info
+#endif
+#if !defined(GONK_DISABLE_GMP_FAKE_LIBS) || GONK_DISABLE_GMP_FAKE_LIBS != 1
+@RESPATH@/gmp-fake/1.0/libfake.so
+@RESPATH@/gmp-fakeopenh264/1.0/fakeopenh264.info
+@RESPATH@/gmp-fakeopenh264/1.0/libfakeopenh264.so
+#endif
+
+#ifdef PKG_LOCALE_MANIFEST
+#include @PKG_LOCALE_MANIFEST@
+#endif
+
+; [Extensions]
+@RESPATH@/components/extensions-toolkit.manifest
+@RESPATH@/components/extensions-b2g.manifest
+
+; Blocklist for addons.
+@BINPATH@/defaults/settings/blocklists
+
+; pdf.js
+@RESPATH@/chrome/pdfjs.manifest
+@RESPATH@/chrome/pdfjs/*

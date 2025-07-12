@@ -1,0 +1,10 @@
+EXPORTS.mozilla.dom += ["IMEConnect.h"]
+
+UNIFIED_SOURCES += ["IMEConnect.cpp"]
+
+FINAL_LIBRARY = "xul"
+LOCAL_INCLUDES += [
+    "/dom/base",
+]
+
+include("/ipc/chromium/chromium-config.mozbuild")

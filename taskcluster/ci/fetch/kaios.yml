@@ -1,0 +1,31 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+---
+B2G:
+    description: Boot2Gecko emulator source code
+    fetch:
+        type: git
+        repo: https://github.com/mozilla-b2g/B2G/
+        revision: 17d92c5dc366372d3d8419ec9fe852371ffdb2d3
+
+b2g-manifests:
+    description: Boot2Gecko AOSP source manifests
+    fetch:
+        type: git
+        repo: https://github.com/kaiostech/manifests/
+        revision: a605ab4265e90d4d506517c22404abf5284cc812
+
+gonk-misc:
+    description: Random parts that make gonk work
+    fetch:
+        type: git
+        repo: https://github.com/kaiostech/gonk-misc/
+        revision: b0b209f89bb598af0f8ba8e40aec9fc346ab6dd9 
+
+api-daemon:
+    description: Rust daemons to access various native services
+    fetch:
+        type: git
+        repo: https://github.com/kaiostech/api-daemon/
+        revision: 3eb2b9ee685edb72228308438dd8945e13d48b39

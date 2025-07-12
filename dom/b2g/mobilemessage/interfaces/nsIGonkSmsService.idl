@@ -1,0 +1,39 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+#include "domstubs.idl"
+#include "nsISmsService.idl"
+#include "nsIGonkSmsMessage.idl"
+
+%{C++
+#define GONK_SMSSERVICE_CONTRACTID \
+        "@mozilla.org/sms/gonksmsservice;1"
+%}
+
+[scriptable, uuid(76681431-8261-4540-bab8-24ef3866e8b6)]
+interface nsIGonkSmsService : nsISmsService
+{
+  const unsigned short SMS_MESSAGE_ENCODING_7BITS_ALPHABET = 0x00;
+  const unsigned short SMS_MESSAGE_ENCODING_8BITS_ALPHABET = 0x04;
+  const unsigned short SMS_MESSAGE_ENCODING_16BITS_ALPHABET = 0x08;
+
+  const unsigned long SMS_APPLICATION_PORT_INVALID = 0xFFFFFFFF;
+
+  /**
+   * Called when a short message has been received by the network.
+   *
+   * @param aServiceId
+   *        The ID of the service where this message is received from.
+   * @param aSmsMessage
+   *        A nsIGonkSmsMessage message data.
+   * @param aData
+   *        Binary message body.
+   * @param aDataLength
+   *        Length of aData.
+   */
+  void notifyMessageReceived(in unsigned long aServiceId,
+                             in nsIGonkSmsMessage aSmsMessage,
+                             [array, size_is(aDataLength)] in octet aData,
+                             in uint32_t aDataLength);
+};

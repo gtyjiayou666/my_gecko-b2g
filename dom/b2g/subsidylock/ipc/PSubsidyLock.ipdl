@@ -1,0 +1,54 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+include protocol PContent;
+include protocol PSubsidyLockRequest;
+
+include "mozilla/dom/subsidylock/SubsidyLockChild.h";
+include "mozilla/dom/subsidylock/SubsidyLockParent.h";
+
+namespace mozilla {
+namespace dom {
+namespace subsidylock {
+
+[ManualDealloc, ChildImpl="SubsidyLockChild", ParentImpl="SubsidyLockParent"]
+sync protocol PSubsidyLock
+{
+  manager PContent;
+  manages PSubsidyLockRequest;
+
+parent:
+  /**
+   * Send when child no longer needs to use PSubsidyLock.
+   */
+  async __delete__();
+
+  /**
+   * Sent when the child makes an asynchronous request to the parent.
+   */
+  async PSubsidyLockRequest(SubsidyLockRequest aRequest);
+};
+
+/**
+ * SubsidyLockRequest
+ */
+struct GetSubsidyLockStatusRequest
+{
+};
+
+struct UnlockSubsidyLockRequest
+{
+  uint32_t lockType;
+  nsString password;
+};
+
+union SubsidyLockRequest
+{
+  GetSubsidyLockStatusRequest;
+  UnlockSubsidyLockRequest;
+};
+
+} // namespace subsidylock
+} // namespace dom
+} // namespace mozilla

@@ -1,0 +1,324 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+@namespace url("http://www.w3.org/1999/xhtml");
+@namespace xul url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
+
+%ifdef MOZ_WIDGET_GONK
+ /* Style the scrollbars */
+ xul|window xul|scrollbar {
+  display: none;
+}
+
+/* Bug 1041576 - Scrollable with scrollgrab should not have scrollbars */
+
+@-moz-document domain(system.gaiamobile.org) {
+  .browser-container > xul|scrollbar {
+    display: none;
+  }
+}
+
+xul|scrollbar[root="true"] {
+  position: relative;
+  z-index: 2147483647;
+}
+
+xul|scrollbar {
+  /* -moz-appearance: none !important; */
+  background-color: transparent !important;
+  background-image: none !important;
+  border: 0px solid transparent !important;
+  pointer-events: none;
+}
+
+/* Scrollbar code will reset the margin to the correct side depending on
+    where layout actually puts the scrollbar */
+xul|scrollbar[orient="vertical"] {
+  margin-left: -4px;
+  margin-top: 1px;
+  min-width: 3px;
+  max-width: 3px;
+}
+
+xul|scrollbar[orient="vertical"] xul|thumb {
+  max-width: 3px !important;
+  min-width: 3px !important;
+}
+
+xul|scrollbar[orient="horizontal"] {
+  margin-top: -4px;
+  margin-left: 1px;
+  min-height: 3px;
+  max-height: 3px;
+}
+
+xul|scrollbar[orient="horizontal"] xul|thumb {
+  max-height: 3px !important;
+  min-height: 3px !important;
+}
+
+xul|scrollbar:not([active="true"]),
+xul|scrollbar[disabled] {
+  opacity: 0;
+}
+
+xul|scrollbarbutton {
+  min-height: 8px !important;
+  min-width: 8px !important;
+  -moz-appearance: none !important;
+  visibility: hidden;
+}
+
+xul|scrollbarbutton[sbattr="scrollbar-up-top"],
+xul|scrollbarbutton[sbattr="scrollbar-bottom-top"] {
+  display: none;
+}
+
+xul|thumb {
+  background-color: #6a6a6a !important;
+  -moz-border-top-colors: none !important;
+  -moz-border-bottom-colors: none !important;
+  -moz-border-right-colors: none !important;
+  -moz-border-left-colors: none !important;
+  border: none;
+  border-radius: 1.5px;
+}
+
+xul|scrollbarbutton {
+  background-image: none !important;
+}
+
+select:not([size]):not([multiple]) > xul|scrollbar,
+select[size="1"] > xul|scrollbar,
+select:not([size]):not([multiple]) xul|scrollbarbutton,
+select[size="1"] xul|scrollbarbutton {
+  display: block;
+  margin-left: 0;
+  min-width: 16px;
+}
+
+%endif
+ 
+ /* -moz-touch-enabled? media elements */
+:-moz-any(video, audio) > xul|videocontrols {
+  -moz-binding: url("chrome://global/content/bindings/videocontrols.xml#touchControls");
+}
+
+/* Selects are handled by the form helper, see bug 685197 */
+select option,
+select optgroup {
+  pointer-events: none;
+}
+
+@media (-moz-platform: android) {
+  /* This binding only provide key shortcuts that we can't use on devices */
+  input,
+  textarea {
+    -moz-binding: none !important;
+  }
+}
+
+/* The following CSS style let numbers in editable <input> and <textarea>
+    appears in default format (0, 1, ... 9). */
+input,
+textarea,
+[contenteditable="true"] {
+  font-variant-numeric: nominal;
+}
+
+*|*::-moz-display-comboboxcontrol-frame {
+  padding-inline: 4px;
+}
+
+/* To override moz-accessiblecaret css in ua.css */
+div:-moz-native-anonymous.moz-accessiblecaret {
+  --caret-width: 14px;
+  --caret-height: 14px;
+  --caret-bar-width: 2px;
+  --caret-color: #0073e6;
+
+  transition: unset; /* remove animation */
+}
+
+div:-moz-native-anonymous.moz-accessiblecaret > #bar {
+  margin-left: -0.5px;
+  background-color: var(--caret-color);
+}
+
+div:-moz-native-anonymous.moz-accessiblecaret.left > #bar {
+  margin-left: calc(var(--caret-bar-width) * -1 + 0.5px);
+}
+
+div:-moz-native-anonymous.moz-accessiblecaret > #text-overlay,
+div:-moz-native-anonymous.moz-accessiblecaret > #image {
+  width: var(--caret-width);
+  height: 100%;
+  padding: 0 var(--caret-width);
+}
+
+div:-moz-native-anonymous.moz-accessiblecaret > #image {
+  padding-bottom: var(--caret-height);
+}
+
+div:-moz-native-anonymous.moz-accessiblecaret.normal > #image,
+div:-moz-native-anonymous.moz-accessiblecaret.left > #image,
+div:-moz-native-anonymous.moz-accessiblecaret.right > #image {
+  background-image: none;
+}
+
+div:-moz-native-anonymous.moz-accessiblecaret.normal
+  > :is(#text-overlay, #image),
+div:-moz-native-anonymous.moz-accessiblecaret.right
+  > :is(#text-overlay, #image) {
+  margin-left: calc(var(--caret-width) * -1 - 0.5px);
+}
+
+div:-moz-native-anonymous.moz-accessiblecaret.left
+  > :is(#text-overlay, #image) {
+  margin-left: calc(var(--caret-width) * -2 + 0.5px);
+}
+
+div:-moz-native-anonymous.moz-accessiblecaret.none {
+  display: block;
+  visibility: hidden;
+}
+
+@media (min-resolution: 1.5dppx) {
+  div:-moz-native-anonymous.moz-accessiblecaret.normal > #image,
+  div:-moz-native-anonymous.moz-accessiblecaret.left > #image,
+  div:-moz-native-anonymous.moz-accessiblecaret.right > #image {
+    background-image: none;
+  }
+}
+
+@media (min-resolution: 2dppx) {
+  div:-moz-native-anonymous.moz-accessiblecaret.normal > #image,
+  div:-moz-native-anonymous.moz-accessiblecaret.left > #image,
+  div:-moz-native-anonymous.moz-accessiblecaret.right > #image {
+    background-image: none;
+  }
+}
+
+@media (min-resolution: 2.25dppx) {
+  div:-moz-native-anonymous.moz-accessiblecaret.normal > #image,
+  div:-moz-native-anonymous.moz-accessiblecaret.left > #image,
+  div:-moz-native-anonymous.moz-accessiblecaret.right > #image {
+    background-image: none;
+  }
+}
+
+div:-moz-native-anonymous.moz-accessiblecaret.normal > #image:after,
+div:-moz-native-anonymous.moz-accessiblecaret.right > #image:after,
+div:-moz-native-anonymous.moz-accessiblecaret.left > #image:after {
+  content: "";
+  display: block;
+
+  width: var(--caret-width);
+  height: var(--caret-height);
+
+  position: relative;
+  top: 0;
+
+  background-color: var(--caret-color);
+  border-color: var(--caret-color);
+  border-width: 1px;
+
+  transition-duration: 250ms;
+  transition-property: width, height;
+}
+
+div:-moz-native-anonymous.moz-accessiblecaret.normal > #image:after,
+div:-moz-native-anonymous.moz-accessiblecaret.right > #image:after {
+  border-radius: 4% 50% 50% 50%;
+  left: 0;
+}
+div:-moz-native-anonymous.moz-accessiblecaret.left > #image:after {
+  border-radius: 50% 4% 50% 50%;
+  right: 0;
+}
+
+div:-moz-native-anonymous.moz-touchlocation > div.cross {
+  --cross-x: 100px;
+  --cross-y: 100px;
+  --cross-color: red;
+
+  border-radius: 50%;
+  border: 1px white solid;
+  background-color: rgba(0, 0, 0, 0.1);
+  width: 32px;
+  height: 32px;
+
+  display: block;
+  position: fixed;
+  z-index: 2147483647;
+  left: calc(var(--cross-x) - 16px);
+  top: calc(var(--cross-y) - 16px);
+}
+
+div:-moz-native-anonymous.moz-touchlocation > div.cross:before,
+div:-moz-native-anonymous.moz-touchlocation > div.cross:after {
+  display: block;
+  position: fixed;
+  z-index: 2147483647;
+  background-color: var(--cross-color);
+
+  white-space: nowrap;
+  overflow: visible;
+
+  -webkit-text-stroke: 1px white;
+}
+
+div:-moz-native-anonymous.moz-touchlocation > div.cross:before {
+  counter-reset: cross-x-n var(--cross-x-n);
+  content: "x:" counter(cross-x-n);
+  width: 1px;
+  height: 100vh;
+
+  left: var(--cross-x);
+  top: 0;
+}
+
+div:-moz-native-anonymous.moz-touchlocation > div.cross:after {
+  counter-reset: cross-y-n var(--cross-y-n);
+  content: "y:" counter(cross-y-n);
+  width: 100vw;
+  height: 1px;
+
+  left: 0;
+  top: var(--cross-y);
+}
+
+div:-moz-native-anonymous.moz-touchlocation.none,
+div:-moz-native-anonymous.moz-touchlocation > div.cross.none {
+  display: none;
+}
+
+div:-moz-native-anonymous.moz-touchlocation > div.cross.start {
+  --cross-color: green;
+  border: 1px green solid;
+}
+
+div:-moz-native-anonymous.moz-touchlocation > div.cross.start:before {
+  content: "";
+  height: 32px;
+  top: calc(var(--corss-y) - 32px);
+}
+
+div:-moz-native-anonymous.moz-touchlocation > div.cross.start:after {
+  content: "";
+  width: 32px;
+  left: calc(var(--corss-x) - 32px);
+}
+
+/* Custom content container in the CanvasFrame, positioned on top of everything
+    everything else, not reacting to pointer events. */
+div:-moz-native-anonymous.moz-custom-content-container {
+  pointer-events: none;
+  -moz-top-layer: top;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}

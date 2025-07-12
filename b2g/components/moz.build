@@ -1,0 +1,78 @@
+# -*- Mode: python; c-basic-offset: 4; indent-tabs-mode: nil; tab-width: 40 -*-
+# vim: set filetype=python:
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+DIRS += [
+    "ime",
+    "actors",
+    "extensions",
+    "sessionstore",
+    "test",
+    "virtualcursor",
+]
+
+if CONFIG["MOZ_WIDGET_TOOLKIT"] != "gonk" and CONFIG["MOZ_WIDGET_TOOLKIT"] != "android":
+    EXTRA_JS_MODULES += ["CommandLine.sys.mjs"]
+    EXTRA_COMPONENTS += ["SimulatorScreen.js"]
+
+if CONFIG["MOZ_UPDATER"]:
+    EXTRA_COMPONENTS += [
+        "UpdatePrompt.js",
+    ]
+
+EXTRA_JS_MODULES += [
+    "ActivityChannel.sys.mjs",
+    "AlertsHelper.sys.mjs",
+    "AlertsService.sys.mjs",
+    "AppsServiceDelegate.sys.mjs",
+    "AppsUtils.sys.mjs",
+    "B2GAboutRedirector.sys.mjs",
+    "B2GProcessSelector.sys.mjs",
+    "ChromeNotifications.sys.mjs",
+    "ContentPermissionPrompt.sys.mjs",
+    "CustomHeaderInjector.sys.mjs",
+    "dbg-browser-actors.js",
+    "DirectoryProvider.sys.mjs",
+    "ErrorPage.sys.mjs",
+    "FilePicker.sys.mjs",
+    "GeckoBridge.sys.mjs",
+    "HelperAppDialog.sys.mjs",
+    "KillSwitch.sys.mjs",
+    "KillSwitchMain.sys.mjs",
+    "MailtoProtocolHandler.sys.mjs",
+    "MultiscreenHandler.sys.mjs",
+    "OrientationChangeHandler.sys.mjs",
+    "PermissionsInstaller.sys.mjs",
+    "PermissionsTable.sys.mjs",
+    "PersistentDataBlock.sys.mjs",
+    "ProcessGlobal.sys.mjs",
+    "RecoveryService.sys.mjs",
+    "Screenshot.sys.mjs",
+    "ServiceWorkerAssistant.sys.mjs",
+    "SettingsPrefsSync.sys.mjs",
+    "ShareDelegate.sys.mjs",
+    "SmsProtocolHandler.sys.mjs",
+    "TelProtocolHandler.sys.mjs",
+    "TelURIParser.sys.mjs",
+]
+
+EXTRA_PP_JS_MODULES += ["MarionetteController.sys.mjs"]
+
+if CONFIG["MOZ_WIDGET_TOOLKIT"] != "gonk":
+    EXTRA_JS_MODULES += ["GlobalSimulatorScreen.sys.mjs"]
+
+XPIDL_SOURCES += ["nsIGaiaChrome.idl"]
+
+XPIDL_MODULE = "gaia_chrome"
+
+UNIFIED_SOURCES += ["GaiaChrome.cpp"]
+
+LOCAL_INCLUDES += ["/chrome"]
+
+XPCOM_MANIFESTS += [
+    "components.conf",
+]
+
+FINAL_LIBRARY = "xul"

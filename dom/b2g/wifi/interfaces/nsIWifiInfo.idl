@@ -1,0 +1,69 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+
+#include "nsISupports.idl"
+
+[scriptable, uuid(c55cb9ed-d679-4d14-bf5b-83b1a74f57d2)]
+interface nsIWifiInfo : nsISupports
+{
+  /**
+   * Return the detailed state of the supplicant's negotiation with an
+   * access point.
+   */
+  readonly attribute AString supplicantState;
+
+  /**
+   * Return the basic service set identifier (BSSID) of the current access point.
+   */
+  readonly attribute AString bssid;
+
+  /**
+   * Returns the service set identifier (SSID) of the current 802.11 network.
+   */
+  readonly attribute AString wifiSsid;
+
+  /**
+   * Returns the current connection security type.
+   */
+  readonly attribute AString security;
+
+  /**
+   * Each configured network has a unique small integer ID, used to identify
+   * the network when performing operations on the supplicant. This method
+   * returns the ID for the currently connected network.
+   */
+  readonly attribute int32_t networkId;
+
+  /**
+   * Returns the received signal strength indicator of the current 802.11
+   * network, in dBm.
+   */
+  readonly attribute int32_t rssi;
+
+  /**
+   * Returns the current connection link speed.
+   */
+  readonly attribute int32_t linkSpeed;
+
+  /**
+   * Returns the current connection frequency.
+   */
+  readonly attribute int32_t frequency;
+
+  /**
+   * Returns the current connection ipv4 Address.
+   */
+  readonly attribute AString ipAddress;
+
+  /**
+   * Returns the current channel in 2.4G or not
+   */
+  readonly attribute boolean is24G;
+
+  /**
+   * Returns the current channel in 5G or not
+   */
+  readonly attribute boolean is5G;
+};

@@ -1,0 +1,50 @@
+/* -*- Mode: C++; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* vim: set ts=8 sts=2 et sw=2 tw=80: */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+include protocol PContent;
+
+namespace mozilla {
+namespace dom {
+
+struct SubscribeRequest
+{
+  nsString messageName;
+  nsCString origin;
+  nsCString scope;
+  nsCString originSuffix;
+};
+
+union SystemMessageServiceRequest
+{
+  SubscribeRequest;
+};
+
+struct SubscribeResponse
+{
+  nsresult status;
+};
+
+union SystemMessageServiceResponse
+{
+  SubscribeResponse;
+};
+
+async protocol PSystemMessageService
+{
+  manager PContent;
+
+child:
+  async Response(SystemMessageServiceResponse aResponse);
+
+parent:
+  async __delete__();
+  // If there is no other APIs in SystemMessageManager,
+  // maybe we can do SendSubscribe/RecvSubscribe directly.
+  async Request(SystemMessageServiceRequest aRequest);
+};
+
+} // namespace dom
+} // namespace mozilla

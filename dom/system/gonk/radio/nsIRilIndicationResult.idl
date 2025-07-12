@@ -1,0 +1,457 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+#include "nsISupports.idl"
+#include "nsIRilResult.idl"
+
+interface nsISignalStrength;
+interface nsISetupDataCallResult;
+interface nsISuppSvcNotification;
+interface nsISimRefreshResult;
+interface nsICellIdentityGsm;
+interface nsICellIdentityWcdma;
+interface nsICellIdentityCdma;
+interface nsICellIdentityLte;
+interface nsICellIdentityTdScdma;
+interface nsIRilCellInfo;
+interface nsIHardwareConfig;
+interface nsIRadioCapability;
+interface nsILceDataInfo;
+interface nsIPcoDataInfo;
+interface nsIRegistrationFailedEvent;
+interface nsIBarringInfoChanged;
+interface nsISimPhonebookRecordsEvent;
+interface nsILinkCapacityEstimate;
+interface nsIPhysicalChannelConfig;
+interface nsIEmergencyNumber;
+interface nsIAllowedCarriers;
+interface nsINetworkScanResult;
+interface nsISlicingConfig;
+interface nsISimSlotStatus;
+
+/**
+ * XPCOM component that provides the hidl broadcast information.
+ */
+[scriptable, uuid(36841cbb-1f01-4fe3-a49f-ad3e6f852ca1)]
+interface nsIRilIndicationResult : nsISupports
+{
+  /**
+   * Message for RilIndication.
+   */
+  readonly attribute AString rilMessageType;
+
+  //Radiostate
+  const long RADIOSTATE_DISABLED = 1;
+  const long RADIOSTATE_UNKNOWN = -1;
+  const long RADIOSTATE_ENABLED = 0;
+
+  /**
+   * Radiostate for radioStateChanged.
+   */
+  readonly attribute long radioState;
+
+  /**
+   * Get the list of ip pdu for newSms and newSmsStatusReport.
+   *
+   * @param pdu
+   *        The list of ip addresses retrieved.
+   *
+   * @returns the length of the lists.
+   */
+  void getPdu([array, size_is(count)] out long pdu,
+                    [retval] out unsigned long count);
+
+  /**
+   * Record number for newSmsOnSim.
+   */
+  readonly attribute long recordNumber;
+
+  //UssdModeType
+  const long USSD_MODE_NOTIFY = 0;
+  const long USSD_MODE_REQUEST = 1;
+  const long USSD_MODE_NW_RELEASE = 2;
+  const long USSD_MODE_LOCAL_CLIENT = 3;
+  const long USSD_MODE_NOT_SUPPORTED = 4;
+  const long USSD_MODE_NW_TIMEOUT = 5;
+
+  /**
+   * ModeType for onUssd.
+   */
+  readonly attribute long typeCode;
+
+  /**
+   * Msg for onUssd.
+   */
+  readonly attribute AString message;
+
+  /**
+   * nitzTime for nitzTimeReceived.
+   */
+  readonly attribute AString dateString;
+
+  /**
+   * receivedTime for nitzTimeReceived.
+   */
+  readonly attribute long long receiveTimeInMS;
+
+  /**
+   * The signal information of the network for currentSignalStrength.
+   */
+  readonly attribute nsISignalStrength signalStrength;
+
+  /**
+   * Get the list of datacallinfo for dataCallListChanged.
+   *
+   * @param datacall
+   *        The list of datacall info retrieved.
+   *
+   * @returns the length of the lists.
+   */
+  void getDataCallLists([optional] out unsigned long count,
+                        [array, size_is(count), retval] out nsISetupDataCallResult datacalls);
+
+  /**
+   * The svc notification information of the network for suppSvcNotify.
+   */
+  readonly attribute nsISuppSvcNotification suppSvc;
+
+  /**
+   * The cmd for stkProactiveCommand and stkEventNotify.
+   */
+  readonly attribute AString cmd;
+
+  /**
+   * The timeout for stkCallSetup.
+   */
+  readonly attribute long timeout;
+
+  //SimRefreshType
+  const long SIM_REFRESH_FILE_UPDATE = 0;
+  const long SIM_REFRESH_INIT = 1;
+  const long SIM_REFRESH_RESET = 2;
+  const long SIM_REFRESH_UNKNOW = -1;
+
+  /**
+   * The refreshResult for simRefresh.
+   */
+  readonly attribute nsISimRefreshResult refreshResult;
+
+  /**
+   * The isGsm for callRing.
+   */
+  readonly attribute boolean isGsm;
+
+  /**
+   * Get the list of datacallinfo for dataCallListChanged.
+   *
+   * @param data
+   *        The list of sms data.
+   *
+   * @returns the length of the lists.
+   */
+  void getNewBroadcastSms([array, size_is(count)] out long data,
+                              [retval] out unsigned long count);
+
+  // PhoneRestrictedState
+  const long PHONE_RESTRICTED_STATE_NONE = 0x00;
+  const long PHONE_RESTRICTED_STATE_CS_EMERGENCY = 0x01;
+  const long PHONE_RESTRICTED_STATE_CS_NORMAL = 0x02;
+  const long PHONE_RESTRICTED_STATE_CS_ALL = 0x04;
+  const long PHONE_RESTRICTED_STATE_PS_ALL = 0x10 ;
+
+  /**
+   * The state for restrictedStateChanged.
+   */
+  readonly attribute long restrictedState;
+
+  /**
+   * The start for indicateRingbackTone.
+   */
+  readonly attribute boolean playRingbackTone;
+
+  /**
+   * The rat for voiceRadioTechChanged.
+   */
+  readonly attribute long radioTech;
+
+  /**
+   * Get the list of cellinfo for cellInfoList.
+   *
+   * @param records
+   *        The list of cell info.
+   *
+   * @returns the length of the lists.
+   */
+  void getCellInfo([array, size_is(count)] out nsIRilCellInfo records,
+                              [retval] out unsigned long count);
+
+  /**
+   * The activate for subscriptionStatusChanged.
+   */
+  readonly attribute boolean activate;
+
+  // SRVCC state
+  const long SRVCC_STATE_HANDOVER_STARTED = 0;
+  const long SRVCC_STATE_HANDOVER_COMPLETED = 1;
+  const long SRVCC_STATE_HANDOVER_FAILED = 2;
+  const long SRVCC_STATE_HANDOVER_CANCELED = 3;
+
+  /**
+   * The state for srvccStateNotify.
+   */
+  readonly attribute long srvccState;
+
+  // HardwareConfigType
+  const long HW_CONFIG_TYPE_MODEM = 0;
+  const long HW_CONFIG_TYPE_SIM = 1;
+
+  // HardwareConfigState
+  const long HW_CONFIG_STATE_ENABLED = 0;
+  const long HW_CONFIG_STATE_STANDBY = 1;
+  const long HW_CONFIG_STATE_DISABLED = 2;
+
+  /**
+   * Get the config value for hardwareConfigChanged.
+   *
+   * @param configs
+   *        The list of hardware.
+   *
+   * @returns the length of the lists.
+   */
+  void getHardwardConfig([array, size_is(count)] out nsIHardwareConfig configs,
+                              [retval] out unsigned long count);
+
+  // RadioCapabilityPhase
+  const long RADIO_CP_CONFIGURED = 0; // Logical Modem's (LM)  initial value
+                                      // and value after FINISH completes
+  const long RADIO_CP_START      = 1; // START is sent before APPLY and indicates that an
+                                      // APPLY is forthcoming with these same parameters
+  const long RADIO_CP_APPLY      = 2; // APPLY is sent after all LM's receive START and returned
+                                      // RadioCapability.status = 0. If any START's fail, hal
+                                      // implementation must not send APPLY.
+  const long RADIO_CP_UNSOL_RSP  = 3; // UNSOL_RSP is sent with unsolicited radioCapability()
+  const long RADIO_CP_FINISH     = 4; // FINISH is sent after all commands have completed. If an
+                                      // error occurs in any previous command, the
+                                      // RadioAccessesFamily and logicalModemUuid fields must be
+                                      // the prior configuration thus restoring the
+                                      // configuration to the previous value. An error returned
+                                      // by FINISH will generally be ignored or may cause that
+                                      // logical modem to be removed from service.
+
+  // RadioAccessFamily
+  const long RADIO_ACCESS_FAMILY_UNKNOWN = 1 << 0;
+  const long RADIO_ACCESS_FAMILY_GPRS = 1 << 1;
+  const long RADIO_ACCESS_FAMILY_EDGE = 1 << 2;
+  const long RADIO_ACCESS_FAMILY_UMTS = 1 << 3;
+  const long RADIO_ACCESS_FAMILY_IS95A = 1 << 4;
+  const long RADIO_ACCESS_FAMILY_IS95B = 1 << 5;
+  const long RADIO_ACCESS_FAMILY_ONE_X_RTT = 1 << 6;
+  const long RADIO_ACCESS_FAMILY_EVDO_0 = 1 << 7;
+  const long RADIO_ACCESS_FAMILY_EVDO_A = 1 << 8;
+  const long RADIO_ACCESS_FAMILY_HSDPA = 1 << 9;
+  const long RADIO_ACCESS_FAMILY_HSUPA = 1 << 10;
+  const long RADIO_ACCESS_FAMILY_HSPA = 1 << 11;
+  const long RADIO_ACCESS_FAMILY_EVDO_B = 1 << 12;
+  const long RADIO_ACCESS_FAMILY_EHRPD = 1 << 13;
+  const long RADIO_ACCESS_FAMILY_LTE = 1 << 14;
+  const long RADIO_ACCESS_FAMILY_HSPAP = 1 << 15;
+  const long RADIO_ACCESS_FAMILY_GSM = 1 << 16;
+  const long RADIO_ACCESS_FAMILY_TD_SCDMA = 1 << 17;
+  const long RADIO_ACCESS_FAMILY_LTE_CA = 1 << 19;
+  const long RADIO_ACCESS_FAMILY_NR = 1 << 20;
+
+  // RadioCapabilityStatus
+  const long RADIO_CP_STATUS_NONE       = 0;  // This parameter has no meaning with
+                                              // RadioCapabilityPhase:START, RadioCapabilityPhase:APPLY
+  const long RADIO_CP_STATUS_SUCCESS    = 1;  // Tell modem the action transaction of set radio
+                                              // capability was success with RadioCapabilityPhase:FINISH
+  const long RADIO_CP_STATUS_FAIL       = 2;  // Tell modem the action transaction of set radio
+                                              // capability is fail with RadioCapabilityPhase:FINISH.
+  /**
+   * The rc for radioCapability.
+   */
+  readonly attribute nsIRadioCapability rc;
+
+  /**
+   * The alpha for stkCallControlAlphaNotify.
+   */
+  readonly attribute AString alpha;
+
+  /**
+   * The lce for lceData.
+   */
+  readonly attribute nsILceDataInfo lce;
+
+  /**
+   * The pco for pcoData.
+   */
+  readonly attribute nsIPcoDataInfo pco;
+
+  /**
+   * The reason for modemReset.
+   */
+  readonly attribute AString reason;
+
+  /* Estimated downlink capacity in kbps. In case of a dual connected network,
+   * this includes capacity of both primary and secondary. This bandwidth estimate shall be
+   * the estimated maximum sustainable link bandwidth (as would be measured
+   * at the Upper PDCP or SNDCP SAP). If the DL Aggregate Maximum Bit Rate is known,
+   * this value shall not exceed the DL-AMBR for the Internet PDN connection.
+   * This must be filled with 0 if network is not connected.
+   * -- uint32_t downlinkCapacityKbps;
+   *
+   * Estimated uplink capacity in kbps. In case of a dual connected network,
+   * this includes capacity of both primary and secondary. This bandwidth estimate shall be the
+   * estimated maximum sustainable link bandwidth (as would be measured at the
+   * Upper PDCP or SNDCP SAP). If the UL Aggregate Maximum Bit Rate is known,
+   * this value shall not exceed the UL-AMBR for the Internet PDN connection.
+   * This must be filled with 0 if network is not connected.
+   * -- uint32_t uplinkCapacityKbps;
+   *
+   * Estimated downlink capacity of secondary carrier in a dual connected NR mode in kbps.
+   * This bandwidth estimate shall be the estimated maximum sustainable link bandwidth
+   * (as would be measured at the Upper PDCP or SNDCP SAP). This is valid only
+   * in if device is connected to both primary and secodary in dual connected
+   * mode. This must be filled with 0 if secondary is not connected or if
+   * modem does not support this feature.
+   * -- uint32_t secondaryDownlinkCapacityKbps;
+   *
+   * Estimated uplink capacity secondary carrier in a dual connected NR mode in kbps.
+   * This bandwidth estimate shall be the estimated
+   * maximum sustainable link bandwidth (as would be measured at the Upper PDCP or SNDCP SAP).
+   * This is valid only in if device is connected to both primary and secodary in dual connected
+   * mode.This must be filled with 0 if secondary is not connected or if modem
+   * does not support this feature.
+   * -- uint32_t secondaryUplinkCapacityKbps;
+   */
+  readonly attribute nsILinkCapacityEstimate linkCapacityEstimate;
+
+  /** Connection status for cell. Valid values are PRIMARY_SERVING and SECONDARY_SERVING
+   * CellConnectionStatus status;
+   * The radio technology for this physical channel
+   * -- RadioTechnology rat;
+   *
+   * Downlink Absolute Radio Frequency Channel Number
+   * -- int32_t downlinkChannelNumber;
+   *
+   * Uplink Absolute Radio Frequency Channel Number
+   * -- int32_t uplinkChannelNumber;
+   *
+   * Downlink cell bandwidth, in kHz
+   * -- int32_t cellBandwidthDownlinkKhz;
+   *
+   * Uplink cell bandwidth, in kHz
+   * -- int32_t cellBandwidthUplinkKhz;
+   *
+   * A list of data calls mapped to this physical channel. The context id must match the cid of
+   * @1.5::SetupDataCallResult. An empty list means the physical channel has no data call mapped
+   * to it.
+   * -- vec<int32_t> contextIds;
+   *
+   * The physical cell identifier for this cell.
+   *
+   * In UTRAN, this value is primary scrambling code. The range is [0, 511].
+   * Reference: 3GPP TS 25.213 section 5.2.2.
+   *
+   * In EUTRAN, this value is physical layer cell identity. The range is [0, 503].
+   * Reference: 3GPP TS 36.211 section 6.11.
+   *
+   * In 5G RAN, this value is physical layer cell identity. The range is [0, 1007].
+   * Reference: 3GPP TS 38.211 section 7.4.2.1.
+   * -- uint32_t physicalCellId;
+   *
+   * The frequency band to scan.
+   * -- safe_union Band {
+   *    ** Valid only if radioAccessNetwork = GERAN.
+        -- GeranBands geranBand;
+        ** Valid only if radioAccessNetwork = UTRAN.
+        -- UtranBands utranBand;
+        ** Valid only if radioAccessNetwork = EUTRAN.
+        -- EutranBands eutranBand;
+        ** Valid only if radioAccessNetwork = NGRAN.
+        -- NgranBands ngranBand;
+   * } band;
+   */
+  readonly attribute Array<nsIPhysicalChannelConfig> physicalChannelConfig;
+
+  /**
+   * Emergency number contains information of number, one or more service category(s), zero or more
+   * emergency uniform resource names, mobile country code (mcc), mobile network country (mnc) and
+   * source(s) that indicate where it comes from.
+   *
+   * If the emergency number is associated with country, field 'mcc' must be provided, otherwise
+   * field 'mcc' must be an empty string. If the emergency number is associated with network
+   * operator, field 'mcc' and 'mnc' must be provided, otherwise field 'mnc' must be an empty
+   * string. If the emergency number is specified with emergency service category(s), field
+   * 'categories' must be provided, otherwise field 'categories' must be
+   * @1.4::EmergencyServiceCategories::UNSPECIFIED. If the emergency number is specified with
+   * emergency uniform resource names (URN), field 'urns' must be provided, otherwise field 'urns'
+   * must be an empty list.
+   *
+   * A unique EmergencyNumber has a unique combination of number, 'mcc', 'mnc', 'categories' and
+   * 'urns' fields. Multiple @1.4::EmergencyNumberSource should be merged into one 'sources' field
+   * via bitwise-OR combination for the same EmergencyNumber.
+   *
+   * Reference: 3gpp 22.101, Section 10 - Emergency Calls;
+   *            3gpp 23.167, Section 6 - Functional description;
+   *            3gpp 24.503, Section 5.1.6.8.1 - General;
+   *            RFC 5031
+   */
+  readonly attribute Array<nsIEmergencyNumber> emergencyNumber;
+
+  /**
+   * List of allowed carriers.
+   * The character '?' is used as wildcard character to match any value.
+   */
+  readonly attribute nsIAllowedCarriers allowedCarriers;
+
+  /**
+   * The status of the scan.
+   *  ScanStatus status;
+
+   * The error code of the incremental result.
+   * RadioError error;
+
+   * List of network information as CellInfo.
+   * vec<CellInfo> networkInfos;
+   */
+  readonly attribute nsINetworkScanResult networkScanResult;
+
+  /**
+   * The current slicing configuration.
+   */
+  readonly attribute nsISlicingConfig slicingConfig;
+
+  /**
+   * Whether uiccApplications are enabled, or disabled.
+   */
+  readonly attribute boolean uiccApplicationsEnabled;
+
+  /**
+   * Whether uiccApplications are enabled, or disabled.
+   */
+  readonly attribute nsIRegistrationFailedEvent regFailedEvent;
+
+  /**
+   * Indicate barring information for the users access category / access class and PLMN.
+   */
+  readonly attribute nsIBarringInfoChanged barringInfoChangedEvent;
+
+  /**
+    * The modem can explicitly set suggestedRetryTime after a failure in
+    * SetupDataCall. During that time, no new calls are allowed to
+    * SetupDataCall that use the same APN.
+    *
+    * When unthrottleApn is sent, OS will no longer throttle calls
+    * SetupDataCall for the given APN.
+    */
+  readonly attribute AString unthrottleApn;
+
+  /**
+   * Indicates the content of all the used records in the SIM phonebook.
+   */
+  readonly attribute nsISimPhonebookRecordsEvent simPBRecordsEvent;
+
+  readonly attribute Array<nsISimSlotStatus> simSlotStatus;
+};

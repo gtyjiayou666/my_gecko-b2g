@@ -1,0 +1,52 @@
+# -*- Mode: python; indent-tabs-mode: nil; tab-width: 40 -*-
+# vim: set filetype=python:
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+
+XPIDL_MODULE = "dom_system_gonk_network"
+
+LOCAL_INCLUDES += [
+    "/dom/base",
+    "/toolkit/components/jsoncpp/include",
+]
+
+XPCOM_MANIFESTS += [
+    "components.conf",
+]
+
+EXPORTS += [
+    "NetworkWorker.h",
+]
+
+XPIDL_SOURCES += [
+    "nsICaptivePortalLanding.idl",
+    "nsINat464XlatInfo.idl",
+    "nsINetworkInterface.idl",
+    "nsINetworkInterfaceListService.idl",
+    "nsINetworkManager.idl",
+    "nsINetworkService.idl",
+    "nsINetworkWorker.idl",
+    "nsITetheringService.idl",
+    "nsITrafficStats.idl",
+]
+UNIFIED_SOURCES += [
+    "NetdEventListener.cpp",
+    "NetdUnsolService.cpp",
+    "NetIdManager.cpp",
+    "NetworkUtils.cpp",
+    "NetworkWorker.cpp",
+    "TrafficStats.cpp",
+]
+EXTRA_JS_MODULES += [
+    "NetworkInterfaceListService.sys.mjs",
+    "NetworkManager.sys.mjs",
+    "NetworkService.sys.mjs",
+    "TetheringConfigStore.sys.mjs",
+    "TetheringService.sys.mjs",
+]
+
+include("/ipc/chromium/chromium-config.mozbuild")
+
+FINAL_LIBRARY = "xul"

@@ -1,0 +1,72 @@
+# -*- Mode: python; c-basic-offset: 4; indent-tabs-mode: nil; tab-width: 40 -*-
+# vim: set filetype=python:
+# Copyright 2013 Mozilla Foundation and Mozilla contributors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+if CONFIG["ANDROID_VERSION"] >= "29":
+    EXPORTS += [
+        "GonkBufferQueueO/GonkBufferItem.h",
+        "GonkBufferQueueO/GonkBufferQueue.h",
+        "GonkBufferQueueO/GonkBufferQueueDefs.h",
+        "GonkBufferQueueO/GonkBufferQueueProducer.h",
+        "GonkBufferQueueO/GonkBufferSlot.h",
+        "GonkBufferQueueO/GonkConsumerBase.h",
+        "GonkBufferQueueO/GonkNativeWindow.h",
+        "GonkBufferQueueO/GonkNativeWindowClient.h",
+        "GonkBufferQueueO/IGonkGraphicBufferConsumer.h",
+    ]
+else:
+    error("B2G only supports ANDROID_VERSION >= 29 : %s" % CONFIG["ANDROID_VERSION"])
+
+if CONFIG["MOZ_B2G_CAMERA"] or CONFIG["MOZ_OMX_DECODER"] or CONFIG["MOZ_WEBRTC"]:
+    if CONFIG["ANDROID_VERSION"] >= "29":
+        SOURCES += [
+            "GonkBufferQueueO/GonkBufferItem.cpp",
+            "GonkBufferQueueO/GonkBufferQueue.cpp",
+            "GonkBufferQueueO/GonkBufferQueueConsumer.cpp",
+            "GonkBufferQueueO/GonkBufferQueueCore.cpp",
+            "GonkBufferQueueO/GonkBufferQueueProducer.cpp",
+            "GonkBufferQueueO/GonkBufferSlot.cpp",
+            "GonkBufferQueueO/GonkConsumerBase.cpp",
+            "GonkBufferQueueO/GonkNativeWindow.cpp",
+            "GonkBufferQueueO/GonkNativeWindowClient.cpp",
+            "GonkBufferQueueO/IGonkGraphicBufferConsumer.cpp",
+        ]
+    else:
+        error("B2G only supports ANDROID_VERSION >= 29")
+
+# TODO: FIXME
+# if CONFIG['ANDROID_VERSION'] >= '18':
+#     SOURCES += [
+#         'FakeSurfaceComposer.cpp',
+#     ]
+
+include("/ipc/chromium/chromium-config.mozbuild")
+
+# Suppress some GCC warnings being treated as errors:
+#  - about attributes on forward declarations for types that are already
+#    defined, which complains about an important MOZ_EXPORT for android::AString
+if CONFIG["GNU_CC"]:
+    CXXFLAGS += ["-Wno-error=attributes", "-Wno-overloaded-virtual"]
+
+CXXFLAGS += [
+    "-std=c++17",
+    "-Wno-macro-redefined",
+    "-Wno-mismatched-tags",
+]
+
+FINAL_LIBRARY = "xul"
+
+DisableStlWrapping()
+NoVisibilityFlags()

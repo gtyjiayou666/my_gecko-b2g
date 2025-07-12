@@ -1,0 +1,180 @@
+# -*- Mode: python; c-basic-offset: 4; indent-tabs-mode: nil; tab-width: 40 -*-
+# vim: set filetype=python:
+# Copyright 2013 Mozilla Foundation and Mozilla contributors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+XPCOM_MANIFESTS += [
+    "components.conf",
+]
+
+EXPORTS += [
+    "AccessibleCaretGonk.h",
+    "GfxDebugger.h",
+    "GonkActivityManagerService.h",
+    # 'GeckoTouchDispatcher.h',
+    "GonkPermission.h",
+    "OrientationObserver.h",
+]
+
+EXPORTS.mozilla += [
+    "hwchal/HwcHAL.h",
+    "libdisplay/BootAnimation.h",
+]
+
+EXPORTS.mozilla.widget += [
+    "GonkCompositorWidget.h",
+]
+
+DIRS += ["libdisplay", "nativewindow"]
+
+# libui files
+SOURCES += [
+    "libui/" + src
+    for src in [
+        "EventHub.cpp",
+        "Input.cpp",
+        "InputApplication.cpp",
+        "InputDevice.cpp",
+        "InputDispatcher.cpp",
+        "InputListener.cpp",
+        "InputReader.cpp",
+        "InputTransport.cpp",
+        "InputWindow.cpp",
+        "Keyboard.cpp",
+        "KeyCharacterMap.cpp",
+        "KeyLayoutMap.cpp",
+        "PointerController.cpp",
+        "PropertyMap.cpp",
+        "sha1.c",
+        "SpriteController.cpp",
+        "Tokenizer.cpp",
+        "VelocityControl.cpp",
+        "VelocityTracker.cpp",
+        "VirtualKeyMap.cpp",
+    ]
+]
+
+# HwcHAL files
+SOURCES += [
+    "hwchal/HwcHAL.cpp",
+]
+
+UNIFIED_SOURCES += [
+    "GonkScreenRecord.cpp",
+    "GonkScreenShot.cpp",
+    "nsDeviceContextGonk.cpp",
+    "nsPrintSettingsServiceGonk.cpp",
+]
+
+if CONFIG["ANDROID_VERSION"] >= "34":
+    SOURCES += [
+        "hwchal/android_14/AidlComposerHal.cpp",
+        "hwchal/android_14/ComposerHal.cpp",
+        "hwchal/android_14/HidlComposerHal.cpp",
+        "hwchal/android_14/HWC2.cpp",
+        "hwchal/HWC2Wrapper.cpp",
+    ]
+elif CONFIG["ANDROID_VERSION"] == "33":
+    SOURCES += [
+        "hwchal/android_13/AidlComposerHal.cpp",
+        "hwchal/android_13/ComposerHal.cpp",
+        "hwchal/android_13/HidlComposerHal.cpp",
+        "hwchal/android_13/HWC2.cpp",
+        "hwchal/HWC2Wrapper.cpp",
+    ]
+else:
+    UNIFIED_SOURCES += [
+        "hwchal/android_10/ComposerHal.cpp",
+        "hwchal/android_10/HWC2.cpp",
+    ]
+
+SOURCES += [
+    "AccessibleCaretGonk.cpp",
+    "GeckoTouchDispatcher.cpp",
+    "GfxDebugger.cpp",
+    "GfxInfo.cpp",
+    "GLCursorImageManager.cpp",
+    "GonkActivityManagerService.cpp",
+    "GonkClipboardData.cpp",
+    "GonkCompositorWidget.cpp",
+    "GonkMemoryPressureMonitoring.cpp",
+    "GonkPermission.cpp",
+    "MediaKeysEventSourceFactory.cpp",
+    "nsAppShell.cpp",
+    "nsClipboard.cpp",
+    "nsIdleServiceGonk.cpp",
+    "nsLookAndFeel.cpp",
+    "nsWidgetFactory.cpp",
+    "nsWindow.cpp",
+    "OrientationObserver.cpp",
+    "ProcessOrientation.cpp",
+    "ScreenHelperGonk.cpp",
+]
+
+SOURCES += [
+    "HwcComposer2D.cpp",
+    "HwcUtils.cpp",
+]
+
+if CONFIG["MOZ_INSTRUMENT_EVENT_LOOP"]:
+    SOURCES += [
+        "WidgetTraceEvent.cpp",
+    ]
+
+include("/ipc/chromium/chromium-config.mozbuild")
+
+FINAL_LIBRARY = "xul"
+
+LOCAL_INCLUDES += [
+    "/b2g/components/ime",
+    "/dom/base",
+    "/dom/system/android",
+    "/gfx/2d/",
+    "/image",
+    "/layout/base",
+    "/layout/forms",
+    "/layout/generic",
+    "/layout/painting",
+    "/layout/style",
+    "/widget",
+    "/widget/gonk/libdisplay",
+]
+
+DEFINES["HAVE_OFF64_T"] = True
+DEFINES["SK_BUILD_FOR_ANDROID_NDK"] = True
+
+DEFINES["HAVE_POSIX_CLOCKS"] = True
+
+if CONFIG["MOZ_OMX_DECODER"]:
+    DEFINES["MOZ_OMX_DECODER"] = True
+
+CXXFLAGS += [
+    "-Wno-macro-redefined",
+    "-Wno-mismatched-tags",
+    "-Wno-inconsistent-missing-override",
+    "-Wno-pointer-bool-conversion",
+    "-Wno-unused-private-field",
+    "-Wno-overloaded-virtual",
+    "-Wno-unused-result",
+    "-Wno-unused-function",
+    "-Wno-unused-value",
+    "-Wno-comma",
+]
+
+LOCAL_INCLUDES += [
+    "/gfx/ipc",
+    "/gfx/skia/skia",
+    "/gfx/skia/skia/include/config",
+    "/gfx/skia/skia/include/core",
+]

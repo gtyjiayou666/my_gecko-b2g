@@ -1,0 +1,65 @@
+/* -*- Mode: C++; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* vim: set ts=8 sts=2 et sw=2 tw=80: */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+include protocol PSubsidyLock;
+
+include "mozilla/dom/subsidylock/SubsidyLockChild.h";
+include "mozilla/dom/subsidylock/SubsidyLockParent.h";
+
+namespace mozilla {
+namespace dom {
+namespace subsidylock {
+
+[ManualDealloc, ChildImpl="SubsidyLockRequestChild", ParentImpl="SubsidyLockRequestParent"]
+protocol PSubsidyLockRequest
+{
+  manager PSubsidyLock;
+
+child:
+  /**
+   * Send when asynchronous request has completed.
+   */
+  async __delete__(SubsidyLockReply aResponse);
+};
+
+/**
+ * SubsidyLockReply
+ */
+// Success
+struct SubsidyLockGetStatusSuccess
+{
+  uint32_t[] types;
+};
+
+struct SubsidyLockReplySuccess
+{
+};
+
+// Error
+struct SubsidyLockReplyError
+{
+  nsString message;
+};
+
+struct SubsidyLockUnlockError
+{
+  int32_t remainingRetry;
+  nsString message;
+};
+
+union SubsidyLockReply
+{
+  // Success
+  SubsidyLockGetStatusSuccess;
+  SubsidyLockReplySuccess;
+  // Error
+  SubsidyLockReplyError;
+  SubsidyLockUnlockError;
+};
+
+} // namespace subsidylock
+} // namespace dom
+} // namespace mozilla

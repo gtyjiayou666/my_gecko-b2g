@@ -1,0 +1,31 @@
+DIRS += ["interfaces"]
+
+EXPORTS.sidl += ["PowerManagerDelegate.h", "PreferenceDelegate.h", "SidlComponents.h"]
+
+SOURCES += ["PowerManagerDelegate.cpp", "PreferenceDelegate.cpp", "SidlComponents.cpp"]
+
+if CONFIG["MOZ_WIDGET_TOOLKIT"] == "gonk":
+    EXPORTS.sidl += [
+        "NetworkManagerDelegate.h",
+    ]
+
+    SOURCES += [
+        "NetworkManagerDelegate.cpp",
+    ]
+
+    if CONFIG["MOZ_B2G_RIL"]:
+        EXPORTS.sidl += [
+            "MobileManagerDelegate.h",
+        ]
+
+        SOURCES += [
+            "MobileManagerDelegate.cpp",
+        ]
+
+XPCOM_MANIFESTS += [
+    "components.conf",
+]
+
+include("/ipc/chromium/chromium-config.mozbuild")
+
+FINAL_LIBRARY = "xul"

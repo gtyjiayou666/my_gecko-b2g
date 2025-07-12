@@ -1,0 +1,12 @@
+[package]
+edition = "2021"
+name = "b2glinuxhal"
+version = "0.1.0"
+
+[dependencies]
+b2ghald = {git = "https://github.com/capyloon/b2ghald.git"}
+log = "0.4"
+nserror = {path = "../../../../xpcom/rust/nserror"}
+nsstring = {path = "../../../../xpcom/rust/nsstring"}
+parking_lot = "0.12"
+xpcom = {path = "../../../../xpcom/rust/xpcom"}

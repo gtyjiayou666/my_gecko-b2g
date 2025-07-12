@@ -1,0 +1,244 @@
+/* -*- Mode: C++; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* vim: set ts=8 sts=2 et sw=2 tw=80: */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+include protocol PContent;
+
+namespace mozilla {
+namespace dom {
+
+struct SetCompositionRequest {
+  uint64_t id;
+  nsString text;
+  int32_t offset;
+  int32_t length;
+};
+
+struct EndCompositionRequest {
+  uint64_t id;
+  nsString text;
+};
+
+struct KeydownRequest {
+  uint64_t id;
+  nsString key;
+};
+
+struct KeyupRequest {
+  uint64_t id;
+  nsString key;
+};
+
+struct SendKeyRequest {
+  uint64_t id;
+  nsString key;
+};
+
+struct DeleteBackwardRequest {
+  uint64_t id;
+};
+
+struct SetSelectedOptionRequest {
+  uint64_t id;
+  int32_t optionIndex;
+};
+
+struct SetSelectedOptionsRequest {
+  uint64_t id;
+  int32_t[] optionIndexes;
+};
+
+struct CommonRequest {
+  uint64_t id;
+  nsString requestName;
+};
+
+struct GetSelectionRangeRequest {
+  uint64_t id;
+};
+
+struct GetTextRequest {
+  uint64_t id;
+  int32_t offset;
+  int32_t length;
+};
+
+struct SetValueRequest {
+  uint64_t id;
+  nsString value;
+};
+
+struct ReplaceSurroundingTextRequest {
+  uint64_t id;
+  nsString text;
+  int32_t offset;
+  int32_t length;
+};
+
+struct HandleTextChangedRequest {
+  nsString text;
+};
+
+struct HandleSelectionChangedRequest {
+  uint32_t startOffset;
+  uint32_t endOffset;
+};
+
+struct OptionDetail {
+  bool group;
+  bool inGroup;
+  nsString text;
+  bool disabled;
+  bool selected;
+  bool defaultSelected;
+  int32_t optionIndex;
+};
+
+struct OptionGroupDetail {
+  bool group;
+  nsString label;
+  bool disabled;
+};
+
+union OptionDetailCollection {
+  OptionDetail;
+  OptionGroupDetail;
+};
+
+struct SelectionChoices {
+  bool multiple;
+  OptionDetailCollection[] choices;
+};
+
+struct HandleFocusRequest {
+  nsString type;
+  nsString inputType;
+  nsString value;
+  nsString max;
+  nsString min;
+  nsString lang;
+  nsString inputMode;
+  bool voiceInputSupported;
+  nsString name;
+  uint32_t selectionStart;
+  uint32_t selectionEnd;
+  SelectionChoices choices;
+  nsString maxLength;
+  nsString imeGroup;
+  nsString lastImeGroup;
+};
+
+struct HandleBlurRequest {
+  nsString imeGroup;
+  nsString lastImeGroup;
+};
+
+struct SetCompositionResponse {
+  uint64_t id;
+  nsresult status;
+};
+
+struct EndCompositionResponse {
+  uint64_t id;
+  nsresult status;
+};
+
+struct KeydownResponse {
+  uint64_t id;
+  nsresult status;
+};
+
+struct KeyupResponse {
+  uint64_t id;
+  nsresult status;
+};
+
+struct SendKeyResponse {
+  uint64_t id;
+  nsresult status;
+};
+
+struct DeleteBackwardResponse {
+  uint64_t id;
+  nsresult status;
+};
+
+struct SetSelectedOptionResponse {
+  uint64_t id;
+  nsresult status;
+};
+
+struct SetSelectedOptionsResponse {
+  uint64_t id;
+  nsresult status;
+};
+
+struct CommonResponse {
+  uint64_t id;
+  nsresult status;
+  nsString responseName;
+};
+
+struct GetSelectionRangeResponse {
+  uint64_t id;
+  nsresult status;
+  int32_t start;
+  int32_t end;
+};
+
+struct GetTextResponse {
+  uint64_t id;
+  nsresult status;
+  nsString text;
+};
+
+union InputMethodRequest {
+  SetCompositionRequest;
+  EndCompositionRequest;
+  KeydownRequest;
+  KeyupRequest;
+  SendKeyRequest;
+  DeleteBackwardRequest;
+  HandleFocusRequest;
+  HandleBlurRequest;
+  SetSelectedOptionRequest;
+  SetSelectedOptionsRequest;
+  CommonRequest;
+  GetSelectionRangeRequest;
+  GetTextRequest;
+  SetValueRequest;
+  ReplaceSurroundingTextRequest;
+  HandleTextChangedRequest;
+  HandleSelectionChangedRequest;
+};
+
+union InputMethodResponse
+{
+  SetCompositionResponse;
+  EndCompositionResponse;
+  KeydownResponse;
+  KeyupResponse;
+  SendKeyResponse;
+  DeleteBackwardResponse;
+  SetSelectedOptionResponse;
+  SetSelectedOptionsResponse;
+  CommonResponse;
+  GetSelectionRangeResponse;
+  GetTextResponse;
+};
+
+async protocol PInputMethodService {
+  manager PContent;
+
+both:
+  async Request(InputMethodRequest aRequest);
+  async Response(InputMethodResponse aResponse);
+
+parent:
+  async __delete__();
+};
+
+} // namespace dom
+} // namespace mozilla

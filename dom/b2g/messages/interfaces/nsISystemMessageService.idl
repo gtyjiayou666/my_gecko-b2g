@@ -1,0 +1,31 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+#include "nsISupports.idl"
+
+interface nsIPrincipal;
+
+[scriptable, uuid(67ffbe2e-f1aa-11ea-9b8d-57eb9585bbdb)]
+interface nsISystemMessageService : nsISupports
+{
+  /**
+   * Internal use for apps to subscribe a particular kind of system messages.
+   * @parm principal   App's principal.
+   * @parm messageName The name of message.
+   * @parm scope       The scope of app's service worker.
+   */
+  void subscribe(in nsIPrincipal principal, in AString messageName, in ACString scope);
+
+  /**
+   * Internal use for apps to unsubscribe all system messages.
+   * @parm principal   App's principal.
+   */
+  void unsubscribe(in nsIPrincipal principal);
+
+  [implicit_jscontext]
+  void sendMessage(in AString messageName, in jsval messageData, in ACString origin);
+
+  [implicit_jscontext]
+  void broadcastMessage(in AString messageName, in jsval messageData);
+};

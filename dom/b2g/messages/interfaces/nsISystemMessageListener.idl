@@ -1,0 +1,12 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+#include "nsISupports.idl"
+
+
+[scriptable, uuid(1dbae9b4-82e4-45e9-98c8-27b7a63242b1)]
+interface nsISystemMessageListener : nsISupports
+{
+  void onSubscribe(in nsresult status);
+};
