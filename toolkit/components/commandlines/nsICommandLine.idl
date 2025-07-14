@@ -85,11 +85,6 @@ interface nsICommandLine : nsISupports
    */
   AString handleFlagWithParam(in AString aFlag, in boolean aCaseSensitive);
   /**
-   * gty
-   * 添加size参数
-   */
-  void appendSize(in long width, in long height);
-  /**
    * The type of command line being processed.
    *
    * STATE_INITIAL_LAUNCH  is the first launch of the application instance.

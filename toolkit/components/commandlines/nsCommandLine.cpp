@@ -348,19 +348,6 @@ void nsCommandLine::appendArg(const char* arg) {
 
   mArgs.AppendElement(warg);
 }
-/**
- * gty
- * 添加size参数
- */
-NS_IMETHODIMP 
-nsCommandLine::AppendSize(int32_t width, int32_t height) {
-  std::string s = std::to_string(width) + "x" + std::to_string(height);
-  nsAutoString warg;
-  warg.Assign(NS_ConvertUTF8toUTF16(s.c_str()));
-  mArgs.AppendElement(u"-size");
-  mArgs.AppendElement(warg);
-  return NS_OK;
-}
 
 nsresult nsCommandLine::resolveShortcutURL(nsIFile* aFile, nsACString& outURL) {
   nsCOMPtr<nsIFileProtocolHandler> fph;
