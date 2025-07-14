@@ -18,10 +18,9 @@ dictionary Pos {
 
 [Exposed=Window, Pref="dom.screen.enabled", Func="B2G::HasB2GScreenManagerSupport"]
 interface B2GScreenManager {
-    Promise<long> getCurrentResolution(long index);
+    Promise<Resolution> getCurrentResolution(long index);
     Promise<sequence<Resolution>> getScreenResolutions(long index);
     Promise<long> getScreenNum();
     Promise<Pos> setResolution(long screen_num, long extension_mod, long new_width, long new_height);
-    Promise<boolean> extendDisplayRight(long screen_num);
     readonly attribute boolean             deviceConfigured;
 };

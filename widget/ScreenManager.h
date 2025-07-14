@@ -42,7 +42,6 @@ class ScreenManager final : public nsIScreenManager {
   void Refresh(nsTArray<mozilla::dom::ScreenDetails>&& aScreens);
   void CopyScreensToRemote(mozilla::dom::ContentParent* aContentParent);
   already_AddRefed<Screen> GetPrimaryScreen();
-  already_AddRefed<Screen> GetScreenByIndex(int32_t index);
   already_AddRefed<Screen> ScreenForRect(const DesktopIntRect& aRect);
 
   const nsTArray<RefPtr<Screen>>& CurrentScreenList() const {

@@ -35,14 +35,12 @@ already_AddRefed<Promise> B2GScreenManager::GetScreenNum() {
 
   XRRScreenResources* res = XRRGetScreenResources(display, root);
   int num = 0;
-  std::cout << "已连接的显示器：" << std::endl;
   for (int i = 0; i < res->noutput; ++i) {
     RROutput output_id = res->outputs[i];
     XRROutputInfo* output_info = XRRGetOutputInfo(display, res, output_id);
     if (!output_info) continue;
     std::string name = output_info->name;
     if (output_info->connection == RR_Connected) {
-      std::cout << " - 名称: " << output_info->name << std::endl;
       num++;
     }
     XRRFreeOutputInfo(output_info);
@@ -62,6 +60,7 @@ already_AddRefed<Promise> B2GScreenManager::GetCurrentResolution(
   ErrorResult rv;
   promise = Promise::Create(mGlobal, rv);
   ENSURE_SUCCESS(rv, nullptr);
+  Resolution r;
 
   Display* display = XOpenDisplay(NULL);
   Window root = DefaultRootWindow(display);
@@ -83,15 +82,17 @@ already_AddRefed<Promise> B2GScreenManager::GetCurrentResolution(
     }
     XRRFreeOutputInfo(output_info);
   }
-  int r_index = -1;
-
   XRROutputInfo* output_info =
       XRRGetOutputInfo(display, res, res->outputs[index]);
   if (!output_info) {
     XRRFreeScreenResources(res);
     XCloseDisplay(display);
+    r.mWidth.Construct(-1);
+    r.mHeight.Construct(-1);
+    promise->MaybeResolve(r);
     return promise.forget();
   }
+
   XRRCrtcInfo* crtc_info = XRRGetCrtcInfo(display, res, output_info->crtc);
   XRRModeInfo current_mode_info;
   bool found_current = false;
@@ -99,26 +100,23 @@ already_AddRefed<Promise> B2GScreenManager::GetCurrentResolution(
     if (res->modes[i].id == crtc_info->mode) {
       current_mode_info = res->modes[i];
       found_current = true;
+      r.mWidth.Construct(res->modes[i].width);
+      r.mHeight.Construct(res->modes[i].height);
       break;
     }
   }
 
   if (!found_current) {
-    std::cerr << "未找到当前模式" << std::endl;
     XRRFreeCrtcInfo(crtc_info);
     XRRFreeScreenResources(res);
     XCloseDisplay(display);
-    promise->MaybeResolve(r_index);
+    r.mWidth.Construct(-1);
+    r.mHeight.Construct(-1);
+    promise->MaybeResolve(r);
     return promise.forget();
   }
-  for (int i = 0; i < res->nmode; ++i) {
-    const XRRModeInfo& mode = res->modes[i];
-    if (mode.id == current_mode_info.id) {
-      r_index = i;
-    }
-  }
   XRRFreeOutputInfo(output_info);
-  promise->MaybeResolve(r_index);
+  promise->MaybeResolve(r);
   XRRFreeScreenResources(res);
   XCloseDisplay(display);
 
@@ -265,7 +263,6 @@ already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
   XRROutputInfo* output_info =
       XRRGetOutputInfo(display, res, res->outputs[screen_num]);
   if (!output_info) {
-    std::cout << "No connected output found!" << std::endl;
     p.mX.Construct(-1);
     p.mY.Construct(-1);
     promise->MaybeResolve(p);
@@ -273,7 +270,6 @@ already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
   }
 
   if (!res) {
-    std::cout << "Failed to get screen resources." << std::endl;
     XRRFreeOutputInfo(output_info);
     XCloseDisplay(display);
     p.mX.Construct(-1);
@@ -284,7 +280,6 @@ already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
 
   XRRCrtcInfo* crtc_info = XRRGetCrtcInfo(display, res, output_info->crtc);
   if (!crtc_info) {
-    std::cout << "Failed to get CRTC info." << std::endl;
     XRRFreeOutputInfo(output_info);
     XRRFreeScreenResources(res);
     XCloseDisplay(display);
@@ -296,8 +291,6 @@ already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
   XRRModeInfo* mode =
       find_mode(display, res, output_info, new_width, new_height);
   if (!mode) {
-    std::cout << "Resolution " << new_width << "x" << new_height
-              << " not supported." << std::endl;
     XRRFreeOutputInfo(output_info);
     XRRFreeScreenResources(res);
     XCloseDisplay(display);
@@ -307,11 +300,9 @@ already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
     return promise.forget();
   }
   if (num == primary_num) {
-    // 修改 CRTC 的分辨率
     if (XRRSetCrtcConfig(display, res, output_info->crtc, CurrentTime,
                          crtc_info->x, crtc_info->y, mode->id,
                          crtc_info->rotation, &res->outputs[screen_num], 1)) {
-      std::cout << "Failed to change resolution." << std::endl;
       XRRFreeCrtcInfo(crtc_info);
       XRRFreeOutputInfo(output_info);
       XRRFreeScreenResources(res);
@@ -322,9 +313,6 @@ already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
       return promise.forget();
     }
     bool one_screen = true;
-    // nsCOMPtr<nsIScreen> screen =
-    //     ScreenManager::GetSingleton().GetScreenByIndex(screen_num);
-    // double primary_wh = (double)new_width / new_height;
     for (int i = 0; i < res->noutput; ++i) {
       RROutput output = res->outputs[i];
       XRROutputInfo* output_info1 = XRRGetOutputInfo(display, res, output);
@@ -337,17 +325,10 @@ already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
         int node_index = 0;
         for (int j = 0; j < res->nmode; ++j) {
           if (res->modes[j].id == crtc_info1->mode) {
-            std::cout << "物理分辨率 (原生模式): " << res->modes[j].width << "x"
-                      << res->modes[j].height << std::endl;
             node_index = j;
             break;
           }
         }
-
-        std::cout << "显示器: " << output_info1->name
-                  << " 分辨率: " << crtc_info1->width << "x"
-                  << crtc_info1->height << " 位置: (" << crtc_info1->x << ", "
-                  << crtc_info1->y << ")" << std::endl;
         int external_width = res->modes[node_index].width;
         int external_height = res->modes[node_index].height;
         std::string p_n = output_info->name;
@@ -366,10 +347,6 @@ already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
           double offset_y =
               (external_height - new_height / scale) / 2.0 / external_height;
 
-          std::cout << "Scale: " << scale << std::endl;
-          std::cout << "Offset X: " << offset_x << std::endl;
-          std::cout << "Offset Y: " << offset_y << std::endl;
-
           std::string transform =
               build_transform(scale, -offset_x * external_width, scale,
                               -offset_y * external_height);
@@ -381,8 +358,6 @@ already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
                                .c_str(),
                            "--pos", "0x0"});
           if (!exec_succ) {
-            std::cout << "Failed to set CRTC config for external display"
-                      << std::endl;
             XRRFreeCrtcInfo(crtc_info);
             XRRFreeCrtcInfo(crtc_info1);
             XRRFreeOutputInfo(output_info);
@@ -398,8 +373,6 @@ already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
                                    "--transform", transform.c_str()});
 
           if (!exec_succ) {
-            std::cout << "Failed to set CRTC config for external display"
-                      << std::endl;
             XRRFreeCrtcInfo(crtc_info);
             XRRFreeCrtcInfo(crtc_info1);
             XRRFreeOutputInfo(output_info);
@@ -441,8 +414,6 @@ already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
               p_n.c_str()};
           bool exec_succ = exec_xrandr(args);
           if (!exec_succ) {
-            std::cout << "Failed to set CRTC config for external display"
-                      << std::endl;
             XRRFreeCrtcInfo(crtc_info);
             XRRFreeCrtcInfo(crtc_info1);
             XRRFreeOutputInfo(output_info);
@@ -487,7 +458,6 @@ already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
         if (scale < (double)primary_height / new_height) {
           scale = (double)primary_height / new_height;
         }
-        // 居中偏移量
         double offset_x = (new_width - primary_width / scale) / 2.0 / new_width;
         double offset_y =
             (new_height - primary_height / scale) / 2.0 / new_height;
@@ -501,8 +471,6 @@ already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
              "--pos", "0x0"});
 
         if (!exec_succ) {
-          std::cout << "Failed to set CRTC config for external display"
-                    << std::endl;
           XRRFreeCrtcInfo(crtc_info);
           XRRFreeCrtcInfo(crtc_info1);
           XRRFreeOutputInfo(output_info);
@@ -518,8 +486,6 @@ already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
                                  "--transform", transform.c_str()});
 
         if (!exec_succ) {
-          std::cout << "Failed to set CRTC config for external display"
-                    << std::endl;
           XRRFreeCrtcInfo(crtc_info);
           XRRFreeCrtcInfo(crtc_info1);
           XRRFreeOutputInfo(output_info);
@@ -560,8 +526,6 @@ already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
             p_n.c_str()};
         bool exec_succ = exec_xrandr(args);
         if (!exec_succ) {
-          std::cout << "Failed to set CRTC config for external display"
-                    << std::endl;
           XRRFreeCrtcInfo(crtc_info);
           XRRFreeCrtcInfo(crtc_info1);
           XRRFreeOutputInfo(output_info);
@@ -587,106 +551,6 @@ already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
   XRRFreeScreenResources(res);
   XCloseDisplay(display);
   promise->MaybeResolve(p);
-  return promise.forget();
-}
-
-already_AddRefed<Promise> B2GScreenManager::ExtendDisplayRight(
-    int32_t screen_num) {
-  RefPtr<Promise> promise;
-  ErrorResult rv;
-  promise = Promise::Create(mGlobal, rv);
-  Display* display = XOpenDisplay(NULL);
-  Window root = DefaultRootWindow(display);
-  XRRScreenResources* res = XRRGetScreenResourcesCurrent(display, root);
-
-  XRROutputInfo* primaryOutput = nullptr;
-  XRRCrtcInfo* primaryCrtc = nullptr;
-
-  // Step 1: 查找主显示器（假设主显示器有 crtc）
-  for (int i = 0; i < res->noutput; ++i) {
-    XRROutputInfo* output = XRRGetOutputInfo(display, res, res->outputs[i]);
-    if (output->connection == RR_Connected && output->crtc != None) {
-      primaryOutput = output;
-      primaryCrtc = XRRGetCrtcInfo(display, res, output->crtc);
-      break;
-    }
-    XRRFreeOutputInfo(output);
-  }
-
-  if (!primaryOutput || !primaryCrtc) {
-    std::cerr << "无法找到主显示器或 CRTC 信息" << std::endl;
-    if (primaryCrtc) XRRFreeCrtcInfo(primaryCrtc);
-    if (primaryOutput) XRRFreeOutputInfo(primaryOutput);
-    XRRFreeScreenResources(res);
-    promise->MaybeResolve(false);
-    return promise.forget();
-  }
-
-  // Step 2: 查找未使用的外接显示器
-  XRROutputInfo* externalOutput = nullptr;
-  int num = 0;
-  for (int i = 0; i < res->noutput; ++i) {
-    XRROutputInfo* output = XRRGetOutputInfo(display, res, res->outputs[i]);
-    if (output->connection == RR_Connected) {
-      if (num == screen_num) {
-        externalOutput = output;
-        break;
-      } else {
-        num++;
-      }
-    }
-    XRRFreeOutputInfo(output);
-  }
-
-  if (!externalOutput) {
-    std::cerr << "没有可用的外接显示器" << std::endl;
-    if (primaryCrtc) XRRFreeCrtcInfo(primaryCrtc);
-    if (primaryOutput) XRRFreeOutputInfo(primaryOutput);
-    if (externalOutput) XRRFreeOutputInfo(externalOutput);
-    XRRFreeScreenResources(res);
-    promise->MaybeResolve(false);
-    return promise.forget();
-  }
-
-  // Step 3: 获取外接显示器当前分辨率
-  XRRModeInfo* mode = nullptr;
-  for (int j = 0; j < res->nmode; ++j) {
-    if (res->modes[j].id == externalOutput->modes[0]) {
-      mode = &res->modes[j];
-      break;
-    }
-  }
-
-  if (!mode) {
-    std::cerr << "无法获取外接显示器的分辨率模式" << std::endl;
-    if (primaryCrtc) XRRFreeCrtcInfo(primaryCrtc);
-    if (primaryOutput) XRRFreeOutputInfo(primaryOutput);
-    if (externalOutput) XRRFreeOutputInfo(externalOutput);
-    XRRFreeScreenResources(res);
-    promise->MaybeResolve(false);
-    return promise.forget();
-  }
-
-  // Step 4: 设置扩展模式，放在主显示器右边
-  int newX = primaryCrtc->x + primaryCrtc->width;
-  int newY = primaryCrtc->y;
-
-  Status status =
-      XRRSetCrtcConfig(display, res, externalOutput->crtc, CurrentTime, newX,
-                       newY, mode->id, RR_Rotate_0, &(externalOutput->crtc), 1);
-
-  if (status != RRSetConfigSuccess) {
-    std::cerr << "设置扩展显示器失败" << std::endl;
-  } else {
-    std::cout << "成功将外接显示器设置为扩展模式，位于主显示器右侧"
-              << std::endl;
-  }
-
-  if (primaryCrtc) XRRFreeCrtcInfo(primaryCrtc);
-  if (primaryOutput) XRRFreeOutputInfo(primaryOutput);
-  if (externalOutput) XRRFreeOutputInfo(externalOutput);
-  XRRFreeScreenResources(res);
-  promise->MaybeResolve(true);
   return promise.forget();
 }
 

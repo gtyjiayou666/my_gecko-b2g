@@ -117,9 +117,6 @@ RefPtr<Screen> ScreenHelperGTK::GetScreenForWindow(nsWindow* aWindow) {
 static UniquePtr<ScreenGetterGtk> gScreenGetter;
 
 static void monitors_changed(GdkScreen* aScreen, gpointer aClosure) {
-  std::cout << "????????????????????????????????????????????????" << std::endl;
-  std::cout << "monitors_changed 检测" << std::endl;
-  std::cout << "????????????????????????????????????????????????" << std::endl;
   LOG_SCREEN("Received monitors-changed event");
   auto* self = static_cast<ScreenGetterGtk*>(aClosure);
   self->RefreshScreens();
@@ -208,8 +205,6 @@ static void activate_new_displays() {
     XRRFreeOutputInfo(output_info);
   }
   if (current_num > dis_num) {
-    std::cout << "当前显示器数量" << current_num << std::endl;
-    std::cout << "检测显示器数量" << dis_num << std::endl;
     XRROutputInfo* primary_output = NULL;
     XRRCrtcInfo* primary_crtc = NULL;
     int main_index = 0;
@@ -307,8 +302,6 @@ static void activate_new_displays() {
                            "--pos", "0x0"});
 
           if (!exec_succ) {
-            std::cout << "Failed to set CRTC config for external display"
-                      << std::endl;
             XRRFreeOutputInfo(primary_output);
             XRRFreeScreenResources(resources);
             XCloseDisplay(display);
@@ -336,9 +329,6 @@ static void activate_new_displays() {
 
 static gboolean check_monitors(gpointer user_data) {
   activate_new_displays();
-  // GdkDisplay* display = gdk_display_get_default();
-  // int n_monitors = gdk_display_get_n_monitors(display);
-  // std::cout << "检测显示器数量 : " << n_monitors << std::endl;
   return G_SOURCE_CONTINUE;  // Continue checking periodically
 }
 
@@ -466,10 +456,6 @@ void ScreenGetterGtk::RefreshScreens() {
   gint numScreens = gdk_screen_get_n_monitors(defaultScreen);
   LOG_SCREEN("GDK reports %d screens", numScreens);
 
-  std::cout << "????????????????????????????????????????????????" << std::endl;
-  std::cout << "ScreenGetterGtk::RefreshScreens()" << std::endl;
-  std::cout << "显示器数量" << numScreens << std::endl;
-  std::cout << "????????????????????????????????????????????????" << std::endl;
   for (gint i = 0; i < numScreens; i++) {
     screenList.AppendElement(MakeScreenGtk(defaultScreen, i));
   }

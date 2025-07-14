@@ -239,7 +239,6 @@ nsresult AppWindow::Initialize(nsIAppWindow* aParent, nsIAppWindow* aOpener,
   mDocShell->SetTreeOwner(mChromeTreeOwner);
 
   r.MoveTo(0, 0);
-  std::cout << "创建主窗口？Initialize:" << "r.Width() = " << r.Width() << ", r.Height() = " << r.Height() << std::endl;
   NS_ENSURE_SUCCESS(mDocShell->InitWindow(nullptr, mWindow, r.X(), r.Y(),
                                           r.Width(), r.Height()),
                     NS_ERROR_FAILURE);
@@ -693,7 +692,6 @@ NS_IMETHODIMP AppWindow::GetPosition(int32_t* aX, int32_t* aY) {
 }
 
 NS_IMETHODIMP AppWindow::SetSize(int32_t aCX, int32_t aCY, bool aRepaint) {
-  std::cout << "执行AppWindow::SetSize：" << "aCX = " << aCX << ", aCY = " << aCY << std::endl;
   /* any attempt to set the window's size or position overrides the window's
      zoom state. this is important when these two states are competing while
      the window is being opened. but it should probably just always be so. */
@@ -764,7 +762,6 @@ nsresult AppWindow::MoveResize(const Maybe<LayoutDeviceIntPoint>& aPosition,
 
 nsresult AppWindow::MoveResize(const Maybe<DesktopPoint>& aPosition,
                                const Maybe<DesktopSize>& aSize, bool aRepaint) {
-  // std::cout << "执行AppWindow::MoveResize：" << "aSize->width = " << aSize->width << ", aSize->height = " << aSize->height << std::endl;
   NS_ENSURE_STATE(mWindow);
   PersistentAttributes dirtyAttributes;
 
@@ -1161,7 +1158,6 @@ NS_IMETHODIMP AppWindow::ForceRoundedDimensions() {
 }
 
 void AppWindow::OnChromeLoaded() {
-  std::cout << "执行AppWindow::OnChromeLoaded()" << std::endl;
   nsresult rv = EnsureContentTreeOwner();
 
   if (NS_SUCCEEDED(rv)) {
@@ -1359,7 +1355,6 @@ bool AppWindow::LoadSizeFromXUL(int32_t& aSpecWidth, int32_t& aSpecHeight) {
 }
 
 void AppWindow::SetSpecifiedSize(int32_t aSpecWidth, int32_t aSpecHeight) {
-  std::cout << "执行AppWindow::SetSpecifiedSize：" << "aSpecWidth = " << aSpecWidth << ", aSpecHeight = " << aSpecHeight << std::endl;
   // These are in CSS pixels of the main window.
   // TODO(emilio): In my testing we usually have a pres context around, can we
   // just use it? That'd simplify the coordinate calculations.
@@ -1606,7 +1601,6 @@ void AppWindow::SyncAttributesToWidget() {
   // Some attributes can change the client size (e.g. chromemargin on Windows
   // and MacOS). But we might want to keep it.
   const LayoutDeviceIntSize oldClientSize = mWindow->GetClientSize();
-  std::cout << "oldClientSize = (" << oldClientSize.Height() << ", " << oldClientSize.Width() << ")" << std::endl;
   // We have to check now whether we want to restore the client size, as any
   // change in size will reset its state.
   bool maintainClientSize = mDominantClientSize;
@@ -1671,7 +1665,6 @@ void AppWindow::SyncAttributesToWidget() {
   }
 
   const LayoutDeviceIntSize newClientSize = mWindow->GetClientSize();
-  std::cout << "newClientSize = (" << newClientSize.Height() << ", " << newClientSize.Width() << ")" << std::endl;
   // Check if the client size did change and if we want to restore it.
   if (maintainClientSize && mWindow->SizeMode() == nsSizeMode_Normal &&
       oldClientSize != mWindow->GetClientSize()) {
@@ -2242,7 +2235,6 @@ nsresult AppWindow::SetRootShellSize(int32_t aWidth, int32_t aHeight) {
 
 NS_IMETHODIMP AppWindow::SizeShellTo(nsIDocShellTreeItem* aShellItem,
                                      int32_t aCX, int32_t aCY) {
-  std::cout << "执行AppWindow::SizeShellTo: " << "aCX = " << aCX << ", aCY = " << aCY << std::endl;
   MOZ_ASSERT(aShellItem == mDocShell || aShellItem == mPrimaryContentShell);
   if (aShellItem == mDocShell) {
     auto newSize =
@@ -2673,7 +2665,6 @@ void AppWindow::IntrinsicallySizeShell(const CSSIntSize& aWindowDiff,
   }
   nsPresContext* pc = viewer->GetPresContext();
   MOZ_ASSERT(pc, "Should have pres context");
-  std::cout << "执行AppWindow::IntrinsicallySizeShell:" << "size->width = " << size->width << ", size->height = " << size->height << std::endl;
 
   int32_t width = pc->CSSPixelsToDevPixels(size->width);
   int32_t height = pc->CSSPixelsToDevPixels(size->height);
@@ -2835,7 +2826,6 @@ bool AppWindow::WindowMoved(nsIWidget* aWidget, int32_t x, int32_t y) {
   if (mDocShell && mDocShell->GetWindow()) {
     nsCOMPtr<EventTarget> eventTarget =
         mDocShell->GetWindow()->GetTopWindowRoot();
-    std::cout << "Notify all tabs that the widget moved." << std::endl;
     nsContentUtils::DispatchChromeEvent(
         mDocShell->GetDocument(), eventTarget, u"MozUpdateWindowPos"_ns,
         CanBubble::eNo, Cancelable::eNo, nullptr);
@@ -3289,7 +3279,6 @@ AppWindow::OnProgressChange(nsIWebProgress* aProgress, nsIRequest* aRequest,
 NS_IMETHODIMP
 AppWindow::OnStateChange(nsIWebProgress* aProgress, nsIRequest* aRequest,
                          uint32_t aStateFlags, nsresult aStatus) {
-  std::cout << "执行AppWindow::OnStateChange" << std::endl;
   // If the notification is not about a document finishing, then just
   // ignore it...
   if (!(aStateFlags & nsIWebProgressListener::STATE_STOP) ||
@@ -3445,7 +3434,6 @@ bool AppWindow::WidgetListenerDelegate::WindowResized(nsIWidget* aWidget,
                                                       int32_t aWidth,
                                                       int32_t aHeight) {
   RefPtr<AppWindow> holder = mAppWindow;
-  std::cout << "修改窗口大小" << std::endl;
   return holder->WindowResized(aWidget, aWidth, aHeight);
 }
 

@@ -441,7 +441,6 @@ void nsBaseWidget::SetWidgetListener(nsIWidgetListener* aWidgetListener) {
 already_AddRefed<nsIWidget> nsBaseWidget::CreateChild(
     const LayoutDeviceIntRect& aRect, widget::InitData* aInitData,
     bool aForceUseIWidgetParent) {
-  std::cout << "nsBaseWidget：创建窗口" << std::endl;
   nsIWidget* parent = this;
   nsNativeWidget nativeParent = nullptr;
 

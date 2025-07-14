@@ -547,7 +547,6 @@ static void fractional_scale_handle_preferred_scale(
   LOGWAYLAND("%s [%p] scale: %f\n", __func__, window.get(),
              wl_container->current_fractional_scale);
   MOZ_DIAGNOSTIC_ASSERT(window);
-  std::cout << "执行fractional_scale_handle_preferred_scale" << std::endl;
   window->OnScaleChanged(/* aNotify = */ true);
 }
 

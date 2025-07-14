@@ -37,7 +37,6 @@ class B2GScreenManager final : public nsISupports, public nsWrapperCache {
                                           int32_t extension_mod,
                                           int32_t new_width,
                                           int32_t new_height);
-  already_AddRefed<Promise> ExtendDisplayRight(int32_t screen_num);
 
  protected:
   ~B2GScreenManager() = default;

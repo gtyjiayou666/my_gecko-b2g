@@ -1149,7 +1149,6 @@ PowerSupplyManager* B2G::GetPowerSupplyManager(ErrorResult& aRv) {
 #if defined(MOZ_WIDGET_GTK)
 /* static */
 bool B2G::HasB2GScreenManagerSupport(JSContext* /* unused */, JSObject* aGlobal) {
-  std::cout << "have screen !!!!!!!!!!!!!!!!!!!!!" << std::endl;
   nsCOMPtr<nsPIDOMWindowInner> innerWindow = xpc::WindowOrNull(aGlobal);
   // bool x = B2G::CheckPermission("screen"_ns, innerWindow);
 
@@ -1157,7 +1156,6 @@ bool B2G::HasB2GScreenManagerSupport(JSContext* /* unused */, JSObject* aGlobal)
 }
 
 B2GScreenManager* B2G::GetB2GScreenManager(ErrorResult& aRv) {
-  std::cout << "have screen !!!!!!!!!!!!!!!!!!!!!" << std::endl;
   if (!mB2GScreenManager) {
     if (!mOwner) {
       aRv.Throw(NS_ERROR_UNEXPECTED);

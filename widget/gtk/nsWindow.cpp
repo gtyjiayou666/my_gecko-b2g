@@ -496,8 +496,6 @@ void nsWindow::DispatchResized() {
   LOG("nsWindow::DispatchResized() size [%d, %d]", (int)(mBounds.width),
       (int)(mBounds.height));
 
-  std::cout << "修改屏幕:" << (int)(mBounds.width) << ","
-            << (int)(mBounds.height) << std::endl;
   mNeedsDispatchSize = LayoutDeviceIntSize(-1, -1);
   if (mWidgetListener) {
     mWidgetListener->WindowResized(this, mBounds.width, mBounds.height);
@@ -994,8 +992,6 @@ void nsWindow::ResizeInt(const Maybe<LayoutDeviceIntPoint>& aMove,
   ConstrainSize(&aSize.width, &aSize.height);
   LOG("  ConstrainSize: w:%d h;%d\n", aSize.width, aSize.height);
 
-  std::cout << "执行ConstrainSize：" << "aSize.width = " << aSize.width
-            << ", aSize.height = " << aSize.height << std::endl;
 
   const bool resized = aSize != mLastSizeRequest || mBounds.Size() != aSize;
 #if MOZ_LOGGING
@@ -1030,8 +1026,6 @@ void nsWindow::ResizeInt(const Maybe<LayoutDeviceIntPoint>& aMove,
   }
 
   NativeMoveResize(moved, resized);
-
-  std::cout << "执行完NativeMoveResize：" << std::endl;
   // We optimistically assume size changes immediately in two cases:
   // 1. Override-redirect window: Size is controlled by only us.
   // 2. Managed window that has not not yet received a size-allocate event:
@@ -1054,14 +1048,10 @@ void nsWindow::ResizeInt(const Maybe<LayoutDeviceIntPoint>& aMove,
       mCompositorWidgetDelegate->NotifyClientSizeChanged(aSize);
     }
     DispatchResized();
-  } else {
-    std::cout << "没有执行DispatchResized：" << std::endl;
   }
 }
 
 void nsWindow::Resize(double aWidth, double aHeight, bool aRepaint) {
-  std::cout << "执行nsWindow::Resize：" << "aWidth = " << aWidth
-            << ", aHeight = " << aHeight << std::endl;
   LOG("nsWindow::Resize %f %f\n", aWidth, aHeight);
 
   double scale =
@@ -3242,7 +3232,6 @@ void nsWindow::RecomputeClientOffset(bool aNotify) {
   if (!IsTopLevelWindowType()) {
     return;
   }
-  std::cout << "重新计算ClientOffset" << std::endl;
 
   auto oldOffset = mClientOffset;
 
@@ -3258,7 +3247,6 @@ void nsWindow::RecomputeClientOffset(bool aNotify) {
 gboolean nsWindow::OnPropertyNotifyEvent(GtkWidget* aWidget,
                                          GdkEventProperty* aEvent) {
   if (aEvent->atom == gdk_atom_intern("_NET_FRAME_EXTENTS", FALSE)) {
-    std::cout << "执行nsWindow::OnPropertyNotifyEvent" << std::endl;
     RecomputeClientOffset(/* aNotify = */ true);
     return FALSE;
   }
@@ -4090,7 +4078,6 @@ gboolean nsWindow::OnConfigureEvent(GtkWidget* aWidget,
     GetWindowRenderer()->FlushRendering(wr::RenderReasons::WIDGET);
     return FALSE;
   }
-  std::cout << "这里调用RecomputeClientOffset" << std::endl;
   mBounds.MoveTo(screenBounds.TopLeft());
   RecomputeClientOffset(/* aNotify = */ false);
 
@@ -4166,9 +4153,6 @@ void nsWindow::OnUnrealize() {
 void nsWindow::OnSizeAllocate(GtkAllocation* aAllocation) {
   LOG("nsWindow::OnSizeAllocate %d,%d -> %d x %d\n", aAllocation->x,
       aAllocation->y, aAllocation->width, aAllocation->height);
-  std::cout << "执行nsWindow::OnSizeAllocate" << aAllocation->x << ","
-            << aAllocation->y << "->" << aAllocation->width << "x"
-            << aAllocation->height << std::endl;
 
   // Client offset are updated by _NET_FRAME_EXTENTS on X11 when system titlebar
   // is enabled. In either cases (Wayland or system titlebar is off on X11)
@@ -5383,7 +5367,6 @@ void nsWindow::OnCompositedChanged() {
 }
 
 void nsWindow::OnScaleChanged(bool aNotify) {
-  std::cout << "执行nsWindow::OnScaleChanged" << std::endl;
   if (!IsTopLevelWindowType()) {
     return;
   }
@@ -8097,7 +8080,6 @@ static void widget_unrealize_cb(GtkWidget* widget) {
 }
 
 static void size_allocate_cb(GtkWidget* widget, GtkAllocation* allocation) {
-  std::cout << "监听到scale_changed_cb信号" << std::endl;
   RefPtr<nsWindow> window = get_window_for_gtk_widget(widget);
   if (!window) {
     return;
@@ -9612,13 +9594,11 @@ nsresult nsWindow::GetSystemFont(nsCString& aFontName) {
 
 already_AddRefed<nsIWidget> nsIWidget::CreateTopLevelWindow() {
   nsCOMPtr<nsIWidget> window = new nsWindow();
-  std::cout << "返回一个窗口CreateTopLevelWindow" << std::endl;
   return window.forget();
 }
 
 already_AddRefed<nsIWidget> nsIWidget::CreateChildWindow() {
   nsCOMPtr<nsIWidget> window = new nsWindow();
-  std::cout << "返回一个窗口CreateChildWindow" << std::endl;
   return window.forget();
 }
 

@@ -466,10 +466,8 @@ NS_IMETHODIMP nsAppShell::Run() {
   if (XRE_IsParentProcess()) {
     AddScreenWakeLockListener();
   }
-  std::cout << "启动nsAppShell::Run()" << std::endl;
 
   nsresult rv = nsBaseAppShell::Run();
-  std::cout << "结束nsAppShell::Run()" << std::endl;
 
   if (XRE_IsParentProcess()) {
     RemoveScreenWakeLockListener();

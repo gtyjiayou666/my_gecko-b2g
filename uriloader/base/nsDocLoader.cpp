@@ -1370,7 +1370,6 @@ void nsDocLoader::DoFireOnStateChange(nsIWebProgress* const aProgress,
 
   NS_ASSERTION(aRequest,
                "Firing OnStateChange(...) notification with a NULL request!");
-  // std::cout << "执行nsDocLoader::DoFireOnStateChange" << std::endl;
   NOTIFY_LISTENERS(
       ((aStateFlags >> 16) & nsIWebProgress::NOTIFY_STATE_ALL),
       listener->OnStateChange(aProgress, aRequest, aStateFlags, aStatus););

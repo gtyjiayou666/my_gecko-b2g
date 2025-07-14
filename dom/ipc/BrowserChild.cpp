@@ -1351,7 +1351,6 @@ mozilla::ipc::IPCResult BrowserChild::RecvUpdateDimensions(
   nsCOMPtr<nsIBaseWindow> baseWin = do_QueryInterface(WebNavigation());
   baseWin->SetPositionAndSize(0, 0, screenSize.width, screenSize.height,
                               nsIBaseWindow::eRepaint);
-  std::cout << "RecvUpdateDimensions修改窗口大小:" <<screenRect.x + mClientOffset.x + mChromeOffset.x<<","<<screenRect.y + mClientOffset.y + mChromeOffset.y<<","<<screenSize.width<<","<< screenSize.height << std::endl;
 
   mPuppetWidget->Resize(screenRect.x + mClientOffset.x + mChromeOffset.x,
                         screenRect.y + mClientOffset.y + mChromeOffset.y,
@@ -3386,7 +3385,6 @@ mozilla::ipc::IPCResult BrowserChild::RecvSafeAreaInsetsChanged(
     int32_t x, y, cx, cy;
     GetDimensions(DimensionKind::Outer, &x, &y, &cx, &cy);
     nsCOMPtr<nsIScreen> screen;
-    std::cout << "窗口设置" << std::endl;
     screenMgr->ScreenForRect(x, y, cx, cy, getter_AddRefs(screen));
 
     if (screen) {
@@ -3468,7 +3466,6 @@ bool BrowserChild::DeallocPPaymentRequestChild(PPaymentRequestChild* actor) {
 }
 
 ScreenIntSize BrowserChild::GetInnerSize() {
-  std::cout << "内部元素大小：" << mUnscaledInnerSize.width << "," << mUnscaledInnerSize.height << "," << mPuppetWidget->GetDefaultScale().scale << std::endl;
   LayoutDeviceIntSize innerSize =
       RoundedToInt(mUnscaledInnerSize * mPuppetWidget->GetDefaultScale());
   return ViewAs<ScreenPixel>(
