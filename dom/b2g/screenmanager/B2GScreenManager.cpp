@@ -220,10 +220,10 @@ bool exec_xrandr(const std::vector<const char*>& args) {
     return false;
   }
 }
-std::string build_transform(double scale_x, double offset_x, double scale_y,
-                            double offset_y) {
+std::string build_transform(double scale_x, int offset_x, double scale_y,
+                            int offset_y) {
   char buffer[256];
-  snprintf(buffer, sizeof(buffer), "%.10g,0,%.10g,0,%.10g,%.10g,0,0,1", scale_x,
+  snprintf(buffer, sizeof(buffer), "%.10g,0,%d,0,%.10g,%d,0,0,1", scale_x,
            offset_x, scale_y, offset_y);
   return std::string(buffer);
 }
@@ -352,7 +352,7 @@ already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
         int external_height = res->modes[node_index].height;
         std::string p_n = output_info->name;
         std::string o_n = output_info1->name;
-        exec_xrandr({"--output", o_n.c_str(), "--off"});
+        exec_xrandr({"xrandr", "--output", o_n.c_str(), "--off"});
 
         std::string cmd;
         if (extension_mod == 0) {
@@ -371,7 +371,8 @@ already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
           std::cout << "Offset Y: " << offset_y << std::endl;
 
           std::string transform =
-              build_transform(scale, offset_x, scale, offset_y);
+              build_transform(scale, -offset_x * external_width, scale,
+                              -offset_y * external_height);
 
           bool exec_succ =
               exec_xrandr({"xrandr", "--output", o_n.c_str(), "--mode",
@@ -379,7 +380,6 @@ already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
                             std::to_string(external_height))
                                .c_str(),
                            "--pos", "0x0"});
-
           if (!exec_succ) {
             std::cout << "Failed to set CRTC config for external display"
                       << std::endl;
@@ -394,14 +394,9 @@ already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
             promise->MaybeResolve(p);
             return promise.forget();
           }
-          // 应用 transform 缩放和平移
-          std::string cmd = "--output " + o_n + " --transform " + transform;
-          std::cout << "Executing: xrandr " << cmd << std::endl;
+          exec_succ = exec_xrandr({"xrandr", "--output", o_n.c_str(),
+                                   "--transform", transform.c_str()});
 
-          // 拆分参数执行
-          std::vector<const char*> args = {"xrandr", "--output", o_n.c_str(),
-                                           "--transform", transform.c_str()};
-          exec_succ = exec_xrandr(args);
           if (!exec_succ) {
             std::cout << "Failed to set CRTC config for external display"
                       << std::endl;
@@ -421,17 +416,9 @@ already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
           p.mWidth.Construct(new_width);
           p.mHeight.Construct(new_height);
         } else {
-          cmd = "xrandr --output " + p_n + " --mode " +
-                std::to_string(new_width) + "x" + std::to_string(new_height) +
-                " --pos 0x0 " + " --output " + o_n + " --mode " +
-                std::to_string(external_width) + "x" +
-                std::to_string(external_height) + " --pos " +
-                std::to_string(new_width) + "x0" + " --right-of " + p_n;
-
-          exec_xrandr(
-              {"--output", o_n.c_str(), "--transform", "1,0,0,0,1,0,0,0,1"});
-          std::cout << "执行命令: " << cmd << std::endl;
-          // int resu = system(cmd.c_str());
+          exec_xrandr({"xrandr", "--output", o_n.c_str(), "--auto"});
+          exec_xrandr({"xrandr", "--output", o_n.c_str(), "--transform",
+                       "1,0,0,0,1,0,0,0,1"});
 
           std::vector<const char*> args = {
               "xrandr",
@@ -489,59 +476,24 @@ already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
     if (output_info1->connection == RR_Connected && output_info1->crtc != 0) {
       XRRCrtcInfo* crtc_info1 =
           XRRGetCrtcInfo(display, res, output_info1->crtc);
-      std::cout << "显示器: " << output_info1->name
-                << " 分辨率: " << crtc_info1->width << "x" << crtc_info1->height
-                << " 位置: (" << crtc_info1->x << ", " << crtc_info1->y << ")"
-                << std::endl;
       int primary_width = crtc_info1->width;
       int primary_height = crtc_info1->height;
       std::string p_n = output_info1->name;
       std::string o_n = output_info->name;
-      exec_xrandr({"--output", o_n.c_str(), "--off"});
+      exec_xrandr({"xrandr", "--output", o_n.c_str(), "--off"});
 
-      std::string cmd;
       if (extension_mod == 0) {
-        // double primary_wh = (double)primary_width / primary_height;
-        // double external_wh = (double)new_width / new_height;
-        // int n_width = new_width;
-        // int n_height = new_height;
-        // int pos_x = 0;
-        // int pos_y = 0;
-        // if (external_wh > primary_wh) {
-        //   new_width = new_height * primary_wh;
-        //   pos_x = (primary_width - new_width) / 2;
-        // } else if (external_wh < primary_wh) {
-        //   new_height = new_height / primary_wh;
-        //   pos_y = (primary_height - new_height) / 2;
-        // }
-        // // Step 4: 计算缩放比例
-        // double scale_x = (double)primary_width / new_width;
-        // double scale_y = (double)primary_height / new_height;
-        // cmd = "xrandr --output " + p_n + " --mode " +
-        //       std::to_string(primary_width) + "x" +
-        //       std::to_string(primary_height) + " --pos " +
-        //       std::to_string(pos_x) + "x" + std::to_string(pos_y) +
-        //       " --output " + o_n + " --mode " + std::to_string(n_width) + "x"
-        //       + std::to_string(n_height) + " --same-as " + p_n + " --scale "
-        //       + std::to_string(scale_x) + "x" + std::to_string(scale_y);
-        // p.mX.Construct(0);
-        // p.mY.Construct(0);
-        double scale = (double)new_width / primary_width;
-        if (scale > (double)new_height / primary_height) {
-          scale = (double)new_height / primary_height;
+        double scale = (double)primary_width / new_width;
+        if (scale < (double)primary_height / new_height) {
+          scale = (double)primary_height / new_height;
         }
         // 居中偏移量
-        double offset_x = (new_width - primary_width * scale) / 2.0 / new_width;
+        double offset_x = (new_width - primary_width / scale) / 2.0 / new_width;
         double offset_y =
-            (new_height - primary_height * scale) / 2.0 / new_height;
+            (new_height - primary_height / scale) / 2.0 / new_height;
 
-        std::cout << "Scale: " << scale << std::endl;
-        std::cout << "Offset X: " << offset_x << std::endl;
-        std::cout << "Offset Y: " << offset_y << std::endl;
-
-        std::string transform =
-            build_transform(scale, offset_x, scale, offset_y);
-
+        std::string transform = build_transform(scale, -offset_x * new_width,
+                                                scale, -offset_y * new_height);
         bool exec_succ = exec_xrandr(
             {"xrandr", "--output", o_n.c_str(), "--mode",
              (std::to_string(new_width) + "x" + std::to_string(new_height))
@@ -562,14 +514,9 @@ already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
           promise->MaybeResolve(p);
           return promise.forget();
         }
-        // 应用 transform 缩放和平移
-        std::string cmd = "--output " + o_n + " --transform " + transform;
-        std::cout << "Executing: xrandr " << cmd << std::endl;
+        exec_succ = exec_xrandr({"xrandr", "--output", o_n.c_str(),
+                                 "--transform", transform.c_str()});
 
-        // 拆分参数执行
-        std::vector<const char*> args = {"xrandr", "--output", o_n.c_str(),
-                                         "--transform", transform.c_str()};
-        exec_succ = exec_xrandr(args);
         if (!exec_succ) {
           std::cout << "Failed to set CRTC config for external display"
                     << std::endl;
@@ -589,13 +536,9 @@ already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
         p.mWidth.Construct(primary_width);
         p.mHeight.Construct(primary_height);
       } else {
-        cmd = "xrandr --output " + p_n + " --mode " +
-              std::to_string(primary_width) + "x" +
-              std::to_string(primary_height) + " --pos 0x0 " + " --output " +
-              o_n + " --mode " + std::to_string(new_width) + "x" +
-              std::to_string(new_height) + " --pos " +
-              std::to_string(primary_width) + "x0" + " --right-of " + p_n;
-        std::cout << "执行命令: " << cmd << std::endl;
+        exec_xrandr({"xrandr", "--output", o_n.c_str(), "--auto"});
+        exec_xrandr({"xrandr", "--output", o_n.c_str(), "--transform",
+                     "1,0,0,0,1,0,0,0,1"});
         std::vector<const char*> args = {
             "xrandr",
             "--output",
@@ -630,8 +573,6 @@ already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
           promise->MaybeResolve(p);
           return promise.forget();
         }
-        // exec_xrandr(
-        //     {"--output", o_n.c_str(), "--transform", "1,0,0,0,1,0,0,0,1"});
         p.mX.Construct(primary_width);
         p.mY.Construct(0);
         p.mWidth.Construct(new_width);

@@ -174,10 +174,10 @@ static bool exec_xrandr(const std::vector<const char*>& args) {
     return false;
   }
 }
-static std::string build_transform(double scale_x, double offset_x,
-                                   double scale_y, double offset_y) {
+static std::string build_transform(double scale_x, int offset_x, double scale_y,
+                                   int offset_y) {
   char buffer[256];
-  snprintf(buffer, sizeof(buffer), "%.10g,0,%.10g,0,%.10g,%.10g,0,0,1", scale_x,
+  snprintf(buffer, sizeof(buffer), "%.10g,0,%d,0,%.10g,%d,0,0,1", scale_x,
            offset_x, scale_y, offset_y);
   return std::string(buffer);
 }
@@ -285,46 +285,26 @@ static void activate_new_displays() {
           std::string p_n = primary_output->name;
           std::string o_n = output_info->name;
 
-          double scale = (double)external_width / primary_width;
-          if (scale > (double)external_height / primary_height) {
-            scale = (double)external_height / primary_height;
+          double scale = (double)primary_width / external_width;
+          if (scale < (double)primary_height / external_height) {
+            scale = (double)primary_height / external_height;
           }
           // 居中偏移量
           double offset_x =
-              (external_width - primary_width * scale) / 2.0 / external_width;
-          double offset_y = (external_height - primary_height * scale) / 2.0 /
+              (external_width - primary_width / scale) / 2.0 / external_width;
+          double offset_y = (external_height - primary_height / scale) / 2.0 /
                             external_height;
 
-          std::cout << "Scale: " << scale << std::endl;
-          std::cout << "Offset X: " << offset_x << std::endl;
-          std::cout << "Offset Y: " << offset_y << std::endl;
-
+          exec_xrandr({"xrandr", "--output", o_n.c_str(), "--auto"});
           std::string transform =
-              build_transform(scale, offset_x, scale, offset_y);
-
-          // 设置副屏分辨率为原生
-          bool exec_succ = exec_xrandr({"xrandr", "--output", o_n.c_str(), "--mode",
-                       (std::to_string(external_width) + "x" +
-                        std::to_string(external_height))
-                           .c_str(),
-                       "--pos", "0x0"});
-
-          if (!exec_succ) {
-            std::cout << "Failed to set CRTC config for external display"
-                      << std::endl;
-            XRRFreeOutputInfo(primary_output);
-            XRRFreeScreenResources(resources);
-            XCloseDisplay(display);
-            return;
-          }
-          // 应用 transform 缩放和平移
-          std::string cmd = "--output " + o_n + " --transform " + transform;
-          std::cout << "Executing: xrandr " << cmd << std::endl;
-
-          // 拆分参数执行
-          std::vector<const char*> args = {"xrandr", "--output", o_n.c_str(),
-                                           "--transform", transform.c_str()};
-          exec_succ = exec_xrandr(args);
+              build_transform(scale, -offset_x * external_width, scale,
+                              -offset_y * external_height);
+          bool exec_succ =
+              exec_xrandr({"xrandr", "--output", o_n.c_str(), "--mode",
+                           (std::to_string(external_width) + "x" +
+                            std::to_string(external_height))
+                               .c_str(),
+                           "--pos", "0x0"});
 
           if (!exec_succ) {
             std::cout << "Failed to set CRTC config for external display"
@@ -334,6 +314,9 @@ static void activate_new_displays() {
             XCloseDisplay(display);
             return;
           }
+          exec_xrandr({"xrandr", "--output", o_n.c_str(), "--transform",
+                       transform.c_str()});
+
         } else {
           fprintf(stderr, "External display %s has no valid modes\n",
                   output_info->name);
