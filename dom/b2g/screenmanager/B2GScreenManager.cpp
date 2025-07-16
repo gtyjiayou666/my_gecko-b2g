@@ -299,19 +299,20 @@ already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
     promise->MaybeResolve(p);
     return promise.forget();
   }
+
+  if (XRRSetCrtcConfig(display, res, output_info->crtc, CurrentTime,
+                       crtc_info->x, crtc_info->y, mode->id,
+                       crtc_info->rotation, &res->outputs[screen_num], 1)) {
+    XRRFreeCrtcInfo(crtc_info);
+    XRRFreeOutputInfo(output_info);
+    XRRFreeScreenResources(res);
+    XCloseDisplay(display);
+    p.mX.Construct(-1);
+    p.mY.Construct(-1);
+    promise->MaybeResolve(p);
+    return promise.forget();
+  }
   if (num == primary_num) {
-    if (XRRSetCrtcConfig(display, res, output_info->crtc, CurrentTime,
-                         crtc_info->x, crtc_info->y, mode->id,
-                         crtc_info->rotation, &res->outputs[screen_num], 1)) {
-      XRRFreeCrtcInfo(crtc_info);
-      XRRFreeOutputInfo(output_info);
-      XRRFreeScreenResources(res);
-      XCloseDisplay(display);
-      p.mX.Construct(-1);
-      p.mY.Construct(-1);
-      promise->MaybeResolve(p);
-      return promise.forget();
-    }
     bool one_screen = true;
     for (int i = 0; i < res->noutput; ++i) {
       RROutput output = res->outputs[i];

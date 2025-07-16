@@ -28,7 +28,6 @@ class B2GScreenManager final : public nsISupports, public nsWrapperCache {
 
   virtual JSObject* WrapObject(JSContext* aCx,
                                JS::Handle<JSObject*> aGivenProto) override;
-  bool DeviceConfigured() const { return mDeviceConfigured; }
 
   already_AddRefed<Promise> GetScreenNum();
   already_AddRefed<Promise> GetCurrentResolution(int32_t index);
@@ -42,8 +41,6 @@ class B2GScreenManager final : public nsISupports, public nsWrapperCache {
   ~B2GScreenManager() = default;
   nsCOMPtr<nsIGlobalObject> mGlobal;
 
- private:
-  bool mDeviceConfigured;
 };
 
 }  // namespace dom
