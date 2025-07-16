@@ -51,7 +51,6 @@ class ScreenGetterGtk final {
  public:
   ScreenGetterGtk() = default;
   ~ScreenGetterGtk();
-
   void Init();
 
 #ifdef MOZ_X11
@@ -68,6 +67,7 @@ class ScreenGetterGtk final {
 #endif
 };
 
+nsWindow* ScreenHelperGTK::mTopWindows;
 static GdkMonitor* GdkDisplayGetMonitor(GdkDisplay* aDisplay, int aMonitorNum) {
   static auto s_gdk_display_get_monitor = (GdkMonitor * (*)(GdkDisplay*, int))
       dlsym(RTLD_DEFAULT, "gdk_display_get_monitor");
@@ -254,7 +254,7 @@ static void activate_new_displays() {
       XRROutputInfo* output_info =
           XRRGetOutputInfo(display, resources, resources->outputs[i]);
 
-      if (output_info->connection == RR_Connected && output_info->crtc == 0) {
+      if (output_info->connection == RR_Connected && i != main_index) {
         printf("Found external display to mirror: %s\n", output_info->name);
         if (output_info->nmode > 0) {
           XRRModeInfo* external_mode = NULL;
@@ -289,6 +289,7 @@ static void activate_new_displays() {
               (external_width - primary_width / scale) / 2.0 / external_width;
           double offset_y = (external_height - primary_height / scale) / 2.0 /
                             external_height;
+          exec_xrandr({"xrandr", "--output", o_n.c_str(), "--off"});
 
           exec_xrandr({"xrandr", "--output", o_n.c_str(), "--auto"});
           std::string transform =
@@ -319,7 +320,33 @@ static void activate_new_displays() {
     }
     XRRFreeOutputInfo(primary_output);
     dis_num = current_num;
-  } else {
+  } else if (current_num < dis_num) {
+    for (int i = 0; i < resources->noutput; ++i) {
+      RROutput output_id = resources->outputs[i];
+      XRROutputInfo* output_info =
+          XRRGetOutputInfo(display, resources, output_id);
+      if (!output_info) continue;
+      std::string name = output_info->name;
+      if (output_info->connection == RR_Connected) {
+        XRRCrtcInfo* crtc_info =
+            XRRGetCrtcInfo(display, resources, output_info->crtc);
+        XRRModeInfo current_mode_info;
+        for (int i = 0; i < resources->nmode; ++i) {
+          if (resources->modes[i].id == crtc_info->mode) {
+            current_mode_info = resources->modes[i];
+            if (ScreenHelperGTK::mTopWindows) {
+              ScreenHelperGTK::mTopWindows->Resize(
+                  0, 0, resources->modes[i].width, resources->modes[i].height,
+                  true);
+            }
+            break;
+          }
+        }
+        XRRFreeOutputInfo(output_info);
+        break;
+      }
+      XRRFreeOutputInfo(output_info);
+    }
     dis_num = current_num;
   }
 

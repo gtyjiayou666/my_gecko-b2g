@@ -286,11 +286,11 @@ var shell = {
   },
 };
 
-
-window.addEventListener("changeSize", () => {
-  window.resizeBy(1000, 500);
+window.addEventListener("changeSize", function(e) {
+  window.resizeTo(e.detail.width, e.detail.height);
+  window.moveTo(e.detail.x, e.detail.y);
+  window.focus();
 });
-
 
 function toggle_bool_pref(name) {
   let current = Services.prefs.getBoolPref(name);

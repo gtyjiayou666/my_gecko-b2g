@@ -6181,6 +6181,7 @@ nsresult nsWindow::Create(nsIWidget* aParent, nsNativeWidget aNativeParent,
     GtkWindowGroup* group = gtk_window_group_new();
     gtk_window_group_add_window(group, GTK_WINDOW(mShell));
     g_object_unref(group);
+    ScreenHelperGTK::mTopWindows = this;
   }
 
   if (mAlwaysOnTop) {
