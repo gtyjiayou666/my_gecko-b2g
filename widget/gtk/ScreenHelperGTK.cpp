@@ -67,7 +67,7 @@ class ScreenGetterGtk final {
 #endif
 };
 
-nsWindow* ScreenHelperGTK::mTopWindows;
+nsWindow* ScreenHelperGTK::mTopWindow;
 static GdkMonitor* GdkDisplayGetMonitor(GdkDisplay* aDisplay, int aMonitorNum) {
   static auto s_gdk_display_get_monitor = (GdkMonitor * (*)(GdkDisplay*, int))
       dlsym(RTLD_DEFAULT, "gdk_display_get_monitor");
@@ -178,132 +178,122 @@ static std::string build_transform(double scale_x, int offset_x, double scale_y,
            offset_x, scale_y, offset_y);
   return std::string(buffer);
 }
-static int32_t dis_num = 0;
+static int32_t disNum = 0;
 
-static void activate_new_displays() {
+static void ActivateNewDisplays() {
   Display* display = XOpenDisplay(NULL);
   if (display == NULL) {
-    fprintf(stderr, "Cannot open display\n");
     exit(1);
   }
-  int event_base, error_base;
-  if (!XRRQueryExtension(display, &event_base, &error_base)) {
-    fprintf(stderr, "RandR extension not available\n");
+  int eventBase, errorBase;
+  if (!XRRQueryExtension(display, &eventBase, &errorBase)) {
     return;
   }
 
   Window root = DefaultRootWindow(display);
   XRRScreenResources* resources = XRRGetScreenResourcesCurrent(display, root);
 
-  int current_num = 0;
+  int currentNum = 0;
   for (int i = 0; i < resources->noutput; ++i) {
-    XRROutputInfo* output_info =
+    XRROutputInfo* outputInfo =
         XRRGetOutputInfo(display, resources, resources->outputs[i]);
-    if (output_info->connection == RR_Connected) {
-      current_num++;
+    if (outputInfo->connection == RR_Connected) {
+      currentNum++;
     }
-    XRRFreeOutputInfo(output_info);
+    XRRFreeOutputInfo(outputInfo);
   }
-  if (current_num > dis_num) {
-    XRROutputInfo* primary_output = NULL;
-    XRRCrtcInfo* primary_crtc = NULL;
+  if (currentNum > disNum) {
+    XRROutputInfo* primaryOutput = NULL;
+    XRRCrtcInfo* primaryCrtc = NULL;
     int main_index = 0;
 
     for (int i = 0; i < resources->noutput; ++i) {
-      XRROutputInfo* output_info =
+      XRROutputInfo* outputInfo =
           XRRGetOutputInfo(display, resources, resources->outputs[i]);
 
-      if (output_info->connection == RR_Connected && output_info->crtc != 0) {
-        primary_output = output_info;
-        primary_crtc = XRRGetCrtcInfo(display, resources, output_info->crtc);
+      if (outputInfo->connection == RR_Connected && outputInfo->crtc != 0) {
+        primaryOutput = outputInfo;
+        primaryCrtc = XRRGetCrtcInfo(display, resources, outputInfo->crtc);
         main_index = i;
-        printf("Found primary output: %s using CRTC: %d\n", output_info->name,
-               output_info->crtc);
+        printf("Found primary output: %s using CRTC: %d\n", outputInfo->name,
+               outputInfo->crtc);
         break;
       }
 
-      XRRFreeOutputInfo(output_info);
+      XRRFreeOutputInfo(outputInfo);
     }
 
-    if (!primary_output || !primary_crtc) {
-      fprintf(stderr, "Failed to find active primary output\n");
+    if (!primaryOutput || !primaryCrtc) {
       return;
     }
-    XRRModeInfo* primary_mode = NULL;
+    XRRModeInfo* primaryMode = NULL;
     for (int j = 0; j < resources->nmode; ++j) {
-      if (resources->modes[j].id == primary_crtc->mode) {
-        primary_mode = &resources->modes[j];
+      if (resources->modes[j].id == primaryCrtc->mode) {
+        primaryMode = &resources->modes[j];
         break;
       }
     }
 
-    if (!primary_mode) {
+    if (!primaryMode) {
       fprintf(stderr, "Failed to get primary mode info\n");
-      XRRFreeOutputInfo(primary_output);
+      XRRFreeOutputInfo(primaryOutput);
       XRRFreeScreenResources(resources);
       XCloseDisplay(display);
       return;
     }
-    int primary_width = primary_mode->width;
-    int primary_height = primary_mode->height;
-    printf("Primary display resolution: %dx%d\n", primary_width,
-           primary_height);
-    double primary_wh = (double)primary_width / primary_height;
-
+    int primaryWidth = primaryMode->width;
+    int primaryHeight = primaryMode->height;
     for (int i = 0; i < resources->noutput; ++i) {
-      XRROutputInfo* output_info =
+      XRROutputInfo* outputInfo =
           XRRGetOutputInfo(display, resources, resources->outputs[i]);
 
-      if (output_info->connection == RR_Connected && i != main_index) {
-        printf("Found external display to mirror: %s\n", output_info->name);
-        if (output_info->nmode > 0) {
-          XRRModeInfo* external_mode = NULL;
+      if (outputInfo->connection == RR_Connected && i != main_index) {
+        printf("Found external display to mirror: %s\n", outputInfo->name);
+        if (outputInfo->nmode > 0) {
+          XRRModeInfo* externalMode = NULL;
           for (int j = 0; j < resources->nmode; ++j) {
-            if (resources->modes[j].id == output_info->modes[0]) {
-              external_mode = &resources->modes[j];
+            if (resources->modes[j].id == outputInfo->modes[0]) {
+              externalMode = &resources->modes[j];
               break;
             }
           }
 
-          if (!external_mode) {
+          if (!externalMode) {
             fprintf(stderr, "Failed to get external mode info\n");
-            XRRFreeOutputInfo(primary_output);
+            XRRFreeOutputInfo(primaryOutput);
             XRRFreeScreenResources(resources);
             XCloseDisplay(display);
             return;
           }
 
-          int external_width = external_mode->width;
-          int external_height = external_mode->height;
-          printf("External display max resolution: %dx%d\n", external_width,
-                 external_height);
-          std::string p_n = primary_output->name;
-          std::string o_n = output_info->name;
+          int externalWidth = externalMode->width;
+          int externalHeight = externalMode->height;
+          std::string p_n = primaryOutput->name;
+          std::string o_n = outputInfo->name;
 
-          double scale = (double)primary_width / external_width;
-          if (scale < (double)primary_height / external_height) {
-            scale = (double)primary_height / external_height;
+          double scale = (double)primaryWidth / externalWidth;
+          if (scale < (double)primaryHeight / externalHeight) {
+            scale = (double)primaryHeight / externalHeight;
           }
-          // 居中偏移量
           double offset_x =
-              (external_width - primary_width / scale) / 2.0 / external_width;
-          double offset_y = (external_height - primary_height / scale) / 2.0 /
-                            external_height;
+              (externalWidth - primaryWidth / scale) / 2.0 / externalWidth;
+          double offset_y = (externalHeight - primaryHeight / scale) / 2.0 /
+                            externalHeight;
           exec_xrandr({"xrandr", "--output", o_n.c_str(), "--off"});
 
           exec_xrandr({"xrandr", "--output", o_n.c_str(), "--auto"});
           std::string transform =
-              build_transform(scale, -offset_x * external_width, scale,
-                              -offset_y * external_height);
+              build_transform(scale, -offset_x * externalWidth, scale,
+                              -offset_y * externalHeight);
           bool exec_succ =
               exec_xrandr({"xrandr", "--output", o_n.c_str(), "--mode",
-                           (std::to_string(external_width) + "x" +
-                            std::to_string(external_height))
+                           (std::to_string(externalWidth) + "x" +
+                            std::to_string(externalHeight))
                                .c_str(),
                            "--pos", "0x0"});
 
           if (!exec_succ) {
-            XRRFreeOutputInfo(primary_output);
+            XRRFreeOutputInfo(primaryOutput);
             XRRFreeScreenResources(resources);
             XCloseDisplay(display);
             return;
@@ -311,43 +301,40 @@ static void activate_new_displays() {
           exec_xrandr({"xrandr", "--output", o_n.c_str(), "--transform",
                        transform.c_str()});
 
-        } else {
-          fprintf(stderr, "External display %s has no valid modes\n",
-                  output_info->name);
-        }
+        } 
       }
-      XRRFreeOutputInfo(output_info);
+      XRRFreeOutputInfo(outputInfo);
     }
-    XRRFreeOutputInfo(primary_output);
-    dis_num = current_num;
-  } else if (current_num < dis_num) {
+    XRRFreeOutputInfo(primaryOutput);
+    disNum = currentNum;
+  } else if (currentNum < disNum) {
     for (int i = 0; i < resources->noutput; ++i) {
       RROutput output_id = resources->outputs[i];
-      XRROutputInfo* output_info =
+      XRROutputInfo* outputInfo =
           XRRGetOutputInfo(display, resources, output_id);
-      if (!output_info) continue;
-      std::string name = output_info->name;
-      if (output_info->connection == RR_Connected) {
+      if (!outputInfo) continue;
+      std::string name = outputInfo->name;
+      if (outputInfo->connection == RR_Connected) {
         XRRCrtcInfo* crtc_info =
-            XRRGetCrtcInfo(display, resources, output_info->crtc);
+            XRRGetCrtcInfo(display, resources, outputInfo->crtc);
         XRRModeInfo current_mode_info;
         for (int i = 0; i < resources->nmode; ++i) {
           if (resources->modes[i].id == crtc_info->mode) {
             current_mode_info = resources->modes[i];
-            if (ScreenHelperGTK::mTopWindows) {
-              ScreenHelperGTK::mTopWindows->Resize(
+            if (ScreenHelperGTK::mTopWindow) {
+              ScreenHelperGTK::mTopWindow->Resize(
                   0, 0, resources->modes[i].width, resources->modes[i].height,
                   true);
             }
             break;
           }
         }
-        XRRFreeOutputInfo(output_info);
+        XRRFreeOutputInfo(outputInfo);
         break;
       }
-      XRRFreeOutputInfo(output_info);
+      XRRFreeOutputInfo(outputInfo);
     }
-    dis_num = current_num;
+    disNum = currentNum;
   }
 
   XRRFreeScreenResources(resources);
@@ -355,13 +342,13 @@ static void activate_new_displays() {
 }
 
 static gboolean check_monitors(gpointer user_data) {
-  activate_new_displays();
+  ActivateNewDisplays();
   return G_SOURCE_CONTINUE;  // Continue checking periodically
 }
 
 void ScreenGetterGtk::Init() {
   LOG_SCREEN("ScreenGetterGtk created");
-  dis_num = ScreenHelperGTK::GetMonitorCount();
+  disNum = ScreenHelperGTK::GetMonitorCount();
   GdkScreen* defaultScreen = gdk_screen_get_default();
   if (!defaultScreen) {
     // Sometimes we don't initial X (e.g., xpcshell)

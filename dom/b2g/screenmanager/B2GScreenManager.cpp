@@ -37,13 +37,13 @@ already_AddRefed<Promise> B2GScreenManager::GetScreenNum() {
   int num = 0;
   for (int i = 0; i < res->noutput; ++i) {
     RROutput output_id = res->outputs[i];
-    XRROutputInfo* output_info = XRRGetOutputInfo(display, res, output_id);
-    if (!output_info) continue;
-    std::string name = output_info->name;
-    if (output_info->connection == RR_Connected) {
+    XRROutputInfo* outputInfo = XRRGetOutputInfo(display, res, output_id);
+    if (!outputInfo) continue;
+    std::string name = outputInfo->name;
+    if (outputInfo->connection == RR_Connected) {
       num++;
     }
-    XRRFreeOutputInfo(output_info);
+    XRRFreeOutputInfo(outputInfo);
   }
 
   promise->MaybeResolve(num);
@@ -69,22 +69,22 @@ already_AddRefed<Promise> B2GScreenManager::GetCurrentResolution(
   int num = 0;
   for (int i = 0; i < res->noutput; ++i) {
     RROutput output_id = res->outputs[i];
-    XRROutputInfo* output_info = XRRGetOutputInfo(display, res, output_id);
-    if (!output_info) continue;
-    std::string name = output_info->name;
-    if (output_info->connection == RR_Connected) {
+    XRROutputInfo* outputInfo = XRRGetOutputInfo(display, res, output_id);
+    if (!outputInfo) continue;
+    std::string name = outputInfo->name;
+    if (outputInfo->connection == RR_Connected) {
       if (num == index) {
         index = i;
-        XRRFreeOutputInfo(output_info);
+        XRRFreeOutputInfo(outputInfo);
         break;
       }
       num++;
     }
-    XRRFreeOutputInfo(output_info);
+    XRRFreeOutputInfo(outputInfo);
   }
-  XRROutputInfo* output_info =
+  XRROutputInfo* outputInfo =
       XRRGetOutputInfo(display, res, res->outputs[index]);
-  if (!output_info) {
+  if (!outputInfo) {
     XRRFreeScreenResources(res);
     XCloseDisplay(display);
     r.mWidth.Construct(-1);
@@ -93,12 +93,12 @@ already_AddRefed<Promise> B2GScreenManager::GetCurrentResolution(
     return promise.forget();
   }
 
-  XRRCrtcInfo* crtc_info = XRRGetCrtcInfo(display, res, output_info->crtc);
-  XRRModeInfo current_mode_info;
+  XRRCrtcInfo* crtcInfo = XRRGetCrtcInfo(display, res, outputInfo->crtc);
+  XRRModeInfo currentModeInfo;
   bool found_current = false;
   for (int i = 0; i < res->nmode; ++i) {
-    if (res->modes[i].id == crtc_info->mode) {
-      current_mode_info = res->modes[i];
+    if (res->modes[i].id == crtcInfo->mode) {
+      currentModeInfo = res->modes[i];
       found_current = true;
       r.mWidth.Construct(res->modes[i].width);
       r.mHeight.Construct(res->modes[i].height);
@@ -107,7 +107,7 @@ already_AddRefed<Promise> B2GScreenManager::GetCurrentResolution(
   }
 
   if (!found_current) {
-    XRRFreeCrtcInfo(crtc_info);
+    XRRFreeCrtcInfo(crtcInfo);
     XRRFreeScreenResources(res);
     XCloseDisplay(display);
     r.mWidth.Construct(-1);
@@ -115,7 +115,7 @@ already_AddRefed<Promise> B2GScreenManager::GetCurrentResolution(
     promise->MaybeResolve(r);
     return promise.forget();
   }
-  XRRFreeOutputInfo(output_info);
+  XRRFreeOutputInfo(outputInfo);
   promise->MaybeResolve(r);
   XRRFreeScreenResources(res);
   XCloseDisplay(display);
@@ -137,33 +137,33 @@ already_AddRefed<Promise> B2GScreenManager::GetScreenResolutions(
   int num = 0;
   for (int i = 0; i < res->noutput; ++i) {
     RROutput output_id = res->outputs[i];
-    XRROutputInfo* output_info = XRRGetOutputInfo(display, res, output_id);
-    if (!output_info) continue;
-    std::string name = output_info->name;
-    if (output_info->connection == RR_Connected) {
+    XRROutputInfo* outputInfo = XRRGetOutputInfo(display, res, output_id);
+    if (!outputInfo) continue;
+    std::string name = outputInfo->name;
+    if (outputInfo->connection == RR_Connected) {
       if (num == index) {
         index = i;
-        XRRFreeOutputInfo(output_info);
+        XRRFreeOutputInfo(outputInfo);
         break;
       }
       num++;
     }
-    XRRFreeOutputInfo(output_info);
+    XRRFreeOutputInfo(outputInfo);
   }
   nsTArray<Resolution> resolution;
 
-  XRROutputInfo* output_info =
+  XRROutputInfo* outputInfo =
       XRRGetOutputInfo(display, res, res->outputs[index]);
-  if (!output_info) {
+  if (!outputInfo) {
     XRRFreeScreenResources(res);
     XCloseDisplay(display);
     return promise.forget();
   }
   // 输出支持的分辨率模式
-  for (int32_t m = 0; m < output_info->nmode; ++m) {
+  for (int32_t m = 0; m < outputInfo->nmode; ++m) {
     XRRModeInfo* mode = &res->modes[0];
     for (int32_t j = 0; j < res->nmode; ++j) {
-      if (res->modes[j].id == output_info->modes[m]) {
+      if (res->modes[j].id == outputInfo->modes[m]) {
         mode = &res->modes[j];
         break;
       }
@@ -174,7 +174,7 @@ already_AddRefed<Promise> B2GScreenManager::GetScreenResolutions(
     resolution.AppendElement(r);
   }
 
-  XRRFreeOutputInfo(output_info);
+  XRRFreeOutputInfo(outputInfo);
 
   promise->MaybeResolve(resolution);
   XRRFreeScreenResources(res);
@@ -183,21 +183,21 @@ already_AddRefed<Promise> B2GScreenManager::GetScreenResolutions(
   return promise.forget();
 }
 
-XRRModeInfo* find_mode(Display* dpy, XRRScreenResources* res,
-                       XRROutputInfo* output_info, int width, int height) {
+XRRModeInfo* FindMode(Display* dpy, XRRScreenResources* res,
+                       XRROutputInfo* outputInfo, int width, int height) {
   for (int j = 0; j < res->nmode; ++j) {
     XRRModeInfo* mode = &res->modes[j];
     if (mode->width == width && mode->height == height) {
       // 检查是否支持该模式
-      for (int k = 0; k < output_info->nmode; ++k) {
-        if (output_info->modes[k] == mode->id) return mode;
+      for (int k = 0; k < outputInfo->nmode; ++k) {
+        if (outputInfo->modes[k] == mode->id) return mode;
       }
     }
   }
   return nullptr;
 }
 
-bool exec_xrandr(const std::vector<const char*>& args) {
+bool ExecXrandr(const std::vector<const char*>& args) {
   pid_t pid = fork();
   if (pid == 0) {
     // 子进程
@@ -218,17 +218,17 @@ bool exec_xrandr(const std::vector<const char*>& args) {
     return false;
   }
 }
-std::string build_transform(double scale_x, int offset_x, double scale_y,
-                            int offset_y) {
+std::string BuildTransform(double scaleX, int offsetX, double scaleY,
+                            int offsetY) {
   char buffer[256];
-  snprintf(buffer, sizeof(buffer), "%.10g,0,%d,0,%.10g,%d,0,0,1", scale_x,
-           offset_x, scale_y, offset_y);
+  snprintf(buffer, sizeof(buffer), "%.10g,0,%d,0,%.10g,%d,0,0,1", scaleX,
+           offsetX, scaleY, offsetY);
   return std::string(buffer);
 }
-already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
-                                                          int32_t extension_mod,
-                                                          int32_t new_width,
-                                                          int32_t new_height) {
+already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t index,
+                                                          int32_t displayType,
+                                                          int32_t newWidth,
+                                                          int32_t newHeight) {
   RefPtr<Promise> promise;
   ErrorResult rv;
 
@@ -239,30 +239,30 @@ already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
   Window root = DefaultRootWindow(display);
   XRRScreenResources* res = XRRGetScreenResources(display, root);
   int num = 0;
-  int primary_num = 0;
-  int primary_index = 0;
+  int primaryNum = 0;
+  int primaryIndex = 0;
   for (int i = 0; i < res->noutput; ++i) {
     RROutput output_id = res->outputs[i];
-    XRROutputInfo* output_info = XRRGetOutputInfo(display, res, output_id);
-    if (!output_info) continue;
-    std::string name = output_info->name;
-    if (output_info->connection == RR_Connected) {
+    XRROutputInfo* outputInfo = XRRGetOutputInfo(display, res, output_id);
+    if (!outputInfo) continue;
+    std::string name = outputInfo->name;
+    if (outputInfo->connection == RR_Connected) {
       if (num == 0) {
-        primary_num = num;
-        primary_index = i;
+        primaryNum = num;
+        primaryIndex = i;
       }
-      if (num == screen_num) {
-        screen_num = i;
-        XRRFreeOutputInfo(output_info);
+      if (num == index) {
+        index = i;
+        XRRFreeOutputInfo(outputInfo);
         break;
       }
       num++;
     }
-    XRRFreeOutputInfo(output_info);
+    XRRFreeOutputInfo(outputInfo);
   }
-  XRROutputInfo* output_info =
-      XRRGetOutputInfo(display, res, res->outputs[screen_num]);
-  if (!output_info) {
+  XRROutputInfo* outputInfo =
+      XRRGetOutputInfo(display, res, res->outputs[index]);
+  if (!outputInfo) {
     p.mX.Construct(-1);
     p.mY.Construct(-1);
     promise->MaybeResolve(p);
@@ -270,7 +270,7 @@ already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
   }
 
   if (!res) {
-    XRRFreeOutputInfo(output_info);
+    XRRFreeOutputInfo(outputInfo);
     XCloseDisplay(display);
     p.mX.Construct(-1);
     p.mY.Construct(-1);
@@ -278,9 +278,9 @@ already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
     return promise.forget();
   }
 
-  XRRCrtcInfo* crtc_info = XRRGetCrtcInfo(display, res, output_info->crtc);
-  if (!crtc_info) {
-    XRRFreeOutputInfo(output_info);
+  XRRCrtcInfo* crtcInfo = XRRGetCrtcInfo(display, res, outputInfo->crtc);
+  if (!crtcInfo) {
+    XRRFreeOutputInfo(outputInfo);
     XRRFreeScreenResources(res);
     XCloseDisplay(display);
     p.mX.Construct(-1);
@@ -289,9 +289,9 @@ already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
     return promise.forget();
   }
   XRRModeInfo* mode =
-      find_mode(display, res, output_info, new_width, new_height);
+      FindMode(display, res, outputInfo, newWidth, newHeight);
   if (!mode) {
-    XRRFreeOutputInfo(output_info);
+    XRRFreeOutputInfo(outputInfo);
     XRRFreeScreenResources(res);
     XCloseDisplay(display);
     p.mX.Construct(-1);
@@ -300,11 +300,11 @@ already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
     return promise.forget();
   }
 
-  if (XRRSetCrtcConfig(display, res, output_info->crtc, CurrentTime,
-                       crtc_info->x, crtc_info->y, mode->id,
-                       crtc_info->rotation, &res->outputs[screen_num], 1)) {
-    XRRFreeCrtcInfo(crtc_info);
-    XRRFreeOutputInfo(output_info);
+  if (XRRSetCrtcConfig(display, res, outputInfo->crtc, CurrentTime,
+                       crtcInfo->x, crtcInfo->y, mode->id,
+                       crtcInfo->rotation, &res->outputs[index], 1)) {
+    XRRFreeCrtcInfo(crtcInfo);
+    XRRFreeOutputInfo(outputInfo);
     XRRFreeScreenResources(res);
     XCloseDisplay(display);
     p.mX.Construct(-1);
@@ -312,57 +312,57 @@ already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
     promise->MaybeResolve(p);
     return promise.forget();
   }
-  if (num == primary_num) {
+  if (num == primaryNum) {
     bool one_screen = true;
     for (int i = 0; i < res->noutput; ++i) {
       RROutput output = res->outputs[i];
-      XRROutputInfo* output_info1 = XRRGetOutputInfo(display, res, output);
+      XRROutputInfo* outputInfo1 = XRRGetOutputInfo(display, res, output);
 
-      if (output_info1->connection == RR_Connected && output_info1->crtc != 0 &&
-          i != screen_num) {
+      if (outputInfo1->connection == RR_Connected && outputInfo1->crtc != 0 &&
+          i != index) {
         one_screen = false;
-        XRRCrtcInfo* crtc_info1 =
-            XRRGetCrtcInfo(display, res, output_info1->crtc);
+        XRRCrtcInfo* crtcInfo1 =
+            XRRGetCrtcInfo(display, res, outputInfo1->crtc);
         int node_index = 0;
         for (int j = 0; j < res->nmode; ++j) {
-          if (res->modes[j].id == crtc_info1->mode) {
+          if (res->modes[j].id == crtcInfo1->mode) {
             node_index = j;
             break;
           }
         }
-        int external_width = res->modes[node_index].width;
-        int external_height = res->modes[node_index].height;
-        std::string p_n = output_info->name;
-        std::string o_n = output_info1->name;
-        exec_xrandr({"xrandr", "--output", o_n.c_str(), "--off"});
+        int externalWidth = res->modes[node_index].width;
+        int externalHeight = res->modes[node_index].height;
+        std::string pN = outputInfo->name;
+        std::string oN = outputInfo1->name;
+        ExecXrandr({"xrandr", "--output", oN.c_str(), "--off"});
 
         std::string cmd;
-        if (extension_mod == 0) {
-          double scale = (double)new_width / external_width;
-          if (scale < (double)new_height / external_height) {
-            scale = (double)new_height / external_height;
+        if (displayType == DisplayType::MirrorReplication) {
+          double scale = (double)newWidth / externalWidth;
+          if (scale < (double)newHeight / externalHeight) {
+            scale = (double)newHeight / externalHeight;
           }
           // 居中偏移量
-          double offset_x =
-              (external_width - new_width / scale) / 2.0 / external_width;
-          double offset_y =
-              (external_height - new_height / scale) / 2.0 / external_height;
+          double offsetX =
+              (externalWidth - newWidth / scale) / 2.0 / externalWidth;
+          double offsetY =
+              (externalHeight - newHeight / scale) / 2.0 / externalHeight;
 
           std::string transform =
-              build_transform(scale, -offset_x * external_width, scale,
-                              -offset_y * external_height);
+              BuildTransform(scale, -offsetX * externalWidth, scale,
+                              -offsetY * externalHeight);
 
           bool exec_succ =
-              exec_xrandr({"xrandr", "--output", o_n.c_str(), "--mode",
-                           (std::to_string(external_width) + "x" +
-                            std::to_string(external_height))
+              ExecXrandr({"xrandr", "--output", oN.c_str(), "--mode",
+                           (std::to_string(externalWidth) + "x" +
+                            std::to_string(externalHeight))
                                .c_str(),
                            "--pos", "0x0"});
           if (!exec_succ) {
-            XRRFreeCrtcInfo(crtc_info);
-            XRRFreeCrtcInfo(crtc_info1);
-            XRRFreeOutputInfo(output_info);
-            XRRFreeOutputInfo(output_info1);
+            XRRFreeCrtcInfo(crtcInfo);
+            XRRFreeCrtcInfo(crtcInfo1);
+            XRRFreeOutputInfo(outputInfo);
+            XRRFreeOutputInfo(outputInfo1);
             XRRFreeScreenResources(res);
             XCloseDisplay(display);
             p.mX.Construct(-1);
@@ -370,14 +370,14 @@ already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
             promise->MaybeResolve(p);
             return promise.forget();
           }
-          exec_succ = exec_xrandr({"xrandr", "--output", o_n.c_str(),
+          exec_succ = ExecXrandr({"xrandr", "--output", oN.c_str(),
                                    "--transform", transform.c_str()});
 
           if (!exec_succ) {
-            XRRFreeCrtcInfo(crtc_info);
-            XRRFreeCrtcInfo(crtc_info1);
-            XRRFreeOutputInfo(output_info);
-            XRRFreeOutputInfo(output_info1);
+            XRRFreeCrtcInfo(crtcInfo);
+            XRRFreeCrtcInfo(crtcInfo1);
+            XRRFreeOutputInfo(outputInfo);
+            XRRFreeOutputInfo(outputInfo1);
             XRRFreeScreenResources(res);
             XCloseDisplay(display);
             p.mX.Construct(-1);
@@ -387,38 +387,38 @@ already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
           }
           p.mX.Construct(0);
           p.mY.Construct(0);
-          p.mWidth.Construct(new_width);
-          p.mHeight.Construct(new_height);
-        } else {
-          exec_xrandr({"xrandr", "--output", o_n.c_str(), "--auto"});
-          exec_xrandr({"xrandr", "--output", o_n.c_str(), "--transform",
+          p.mWidth.Construct(newWidth);
+          p.mHeight.Construct(newHeight);
+        } else if (displayType == DisplayType::Extension) {
+          ExecXrandr({"xrandr", "--output", oN.c_str(), "--auto"});
+          ExecXrandr({"xrandr", "--output", oN.c_str(), "--transform",
                        "1,0,0,0,1,0,0,0,1"});
 
           std::vector<const char*> args = {
               "xrandr",
               "--output",
-              p_n.c_str(),
+              pN.c_str(),
               "--mode",
-              (std::to_string(new_width) + "x" + std::to_string(new_height))
+              (std::to_string(newWidth) + "x" + std::to_string(newHeight))
                   .c_str(),
               "--pos",
               "0x0",
               "--output",
-              o_n.c_str(),
+              oN.c_str(),
               "--mode",
-              (std::to_string(external_width) + "x" +
-               std::to_string(external_height))
+              (std::to_string(externalWidth) + "x" +
+               std::to_string(externalHeight))
                   .c_str(),
               "--pos",
-              (std::to_string(new_width) + "x0").c_str(),
+              (std::to_string(newWidth) + "x0").c_str(),
               "--right-of",
-              p_n.c_str()};
-          bool exec_succ = exec_xrandr(args);
+              pN.c_str()};
+          bool exec_succ = ExecXrandr(args);
           if (!exec_succ) {
-            XRRFreeCrtcInfo(crtc_info);
-            XRRFreeCrtcInfo(crtc_info1);
-            XRRFreeOutputInfo(output_info);
-            XRRFreeOutputInfo(output_info1);
+            XRRFreeCrtcInfo(crtcInfo);
+            XRRFreeCrtcInfo(crtcInfo1);
+            XRRFreeOutputInfo(outputInfo);
+            XRRFreeOutputInfo(outputInfo1);
             XRRFreeScreenResources(res);
             XCloseDisplay(display);
             p.mX.Construct(-1);
@@ -426,56 +426,56 @@ already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
             promise->MaybeResolve(p);
             return promise.forget();
           }
-          p.mX.Construct(new_width);
+          p.mX.Construct(newWidth);
           p.mY.Construct(0);
-          p.mWidth.Construct(external_width);
-          p.mHeight.Construct(external_height);
+          p.mWidth.Construct(externalWidth);
+          p.mHeight.Construct(externalHeight);
         }
-        XRRFreeCrtcInfo(crtc_info1);
+        XRRFreeCrtcInfo(crtcInfo1);
       }
-      XRRFreeOutputInfo(output_info1);
+      XRRFreeOutputInfo(outputInfo1);
     }
     if (one_screen) {
       p.mX.Construct(0);
       p.mY.Construct(0);
-      p.mWidth.Construct(new_width);
-      p.mHeight.Construct(new_height);
+      p.mWidth.Construct(newWidth);
+      p.mHeight.Construct(newHeight);
     }
   } else {
-    RROutput output = res->outputs[primary_index];
-    XRROutputInfo* output_info1 = XRRGetOutputInfo(display, res, output);
+    RROutput output = res->outputs[primaryIndex];
+    XRROutputInfo* outputInfo1 = XRRGetOutputInfo(display, res, output);
 
-    if (output_info1->connection == RR_Connected && output_info1->crtc != 0) {
-      XRRCrtcInfo* crtc_info1 =
-          XRRGetCrtcInfo(display, res, output_info1->crtc);
-      int primary_width = crtc_info1->width;
-      int primary_height = crtc_info1->height;
-      std::string p_n = output_info1->name;
-      std::string o_n = output_info->name;
-      exec_xrandr({"xrandr", "--output", o_n.c_str(), "--off"});
+    if (outputInfo1->connection == RR_Connected && outputInfo1->crtc != 0) {
+      XRRCrtcInfo* crtcInfo1 =
+          XRRGetCrtcInfo(display, res, outputInfo1->crtc);
+      int primaryWidth = crtcInfo1->width;
+      int primaryHeight = crtcInfo1->height;
+      std::string pN = outputInfo1->name;
+      std::string oN = outputInfo->name;
+      ExecXrandr({"xrandr", "--output", oN.c_str(), "--off"});
 
-      if (extension_mod == 0) {
-        double scale = (double)primary_width / new_width;
-        if (scale < (double)primary_height / new_height) {
-          scale = (double)primary_height / new_height;
+      if (displayType == DisplayType::MirrorReplication) {
+        double scale = (double)primaryWidth / newWidth;
+        if (scale < (double)primaryHeight / newHeight) {
+          scale = (double)primaryHeight / newHeight;
         }
-        double offset_x = (new_width - primary_width / scale) / 2.0 / new_width;
-        double offset_y =
-            (new_height - primary_height / scale) / 2.0 / new_height;
+        double offsetX = (newWidth - primaryWidth / scale) / 2.0 / newWidth;
+        double offsetY =
+            (newHeight - primaryHeight / scale) / 2.0 / newHeight;
 
-        std::string transform = build_transform(scale, -offset_x * new_width,
-                                                scale, -offset_y * new_height);
-        bool exec_succ = exec_xrandr(
-            {"xrandr", "--output", o_n.c_str(), "--mode",
-             (std::to_string(new_width) + "x" + std::to_string(new_height))
+        std::string transform = BuildTransform(scale, -offsetX * newWidth,
+                                                scale, -offsetY * newHeight);
+        bool exec_succ = ExecXrandr(
+            {"xrandr", "--output", oN.c_str(), "--mode",
+             (std::to_string(newWidth) + "x" + std::to_string(newHeight))
                  .c_str(),
              "--pos", "0x0"});
 
         if (!exec_succ) {
-          XRRFreeCrtcInfo(crtc_info);
-          XRRFreeCrtcInfo(crtc_info1);
-          XRRFreeOutputInfo(output_info);
-          XRRFreeOutputInfo(output_info1);
+          XRRFreeCrtcInfo(crtcInfo);
+          XRRFreeCrtcInfo(crtcInfo1);
+          XRRFreeOutputInfo(outputInfo);
+          XRRFreeOutputInfo(outputInfo1);
           XRRFreeScreenResources(res);
           XCloseDisplay(display);
           p.mX.Construct(-1);
@@ -483,14 +483,14 @@ already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
           promise->MaybeResolve(p);
           return promise.forget();
         }
-        exec_succ = exec_xrandr({"xrandr", "--output", o_n.c_str(),
+        exec_succ = ExecXrandr({"xrandr", "--output", oN.c_str(),
                                  "--transform", transform.c_str()});
 
         if (!exec_succ) {
-          XRRFreeCrtcInfo(crtc_info);
-          XRRFreeCrtcInfo(crtc_info1);
-          XRRFreeOutputInfo(output_info);
-          XRRFreeOutputInfo(output_info1);
+          XRRFreeCrtcInfo(crtcInfo);
+          XRRFreeCrtcInfo(crtcInfo1);
+          XRRFreeOutputInfo(outputInfo);
+          XRRFreeOutputInfo(outputInfo1);
           XRRFreeScreenResources(res);
           XCloseDisplay(display);
           p.mX.Construct(-1);
@@ -500,37 +500,37 @@ already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
         }
         p.mX.Construct(0);
         p.mY.Construct(0);
-        p.mWidth.Construct(primary_width);
-        p.mHeight.Construct(primary_height);
-      } else {
-        exec_xrandr({"xrandr", "--output", o_n.c_str(), "--auto"});
-        exec_xrandr({"xrandr", "--output", o_n.c_str(), "--transform",
+        p.mWidth.Construct(primaryWidth);
+        p.mHeight.Construct(primaryHeight);
+      } else if (displayType == DisplayType::Extension) {
+        ExecXrandr({"xrandr", "--output", oN.c_str(), "--auto"});
+        ExecXrandr({"xrandr", "--output", oN.c_str(), "--transform",
                      "1,0,0,0,1,0,0,0,1"});
         std::vector<const char*> args = {
             "xrandr",
             "--output",
-            p_n.c_str(),
+            pN.c_str(),
             "--mode",
-            (std::to_string(primary_width) + "x" +
-             std::to_string(primary_height))
+            (std::to_string(primaryWidth) + "x" +
+             std::to_string(primaryHeight))
                 .c_str(),
             "--pos",
             "0x0",
             "--output",
-            o_n.c_str(),
+            oN.c_str(),
             "--mode",
-            (std::to_string(new_width) + "x" + std::to_string(new_height))
+            (std::to_string(newWidth) + "x" + std::to_string(newHeight))
                 .c_str(),
             "--pos",
-            (std::to_string(primary_width) + "x0").c_str(),
+            (std::to_string(primaryWidth) + "x0").c_str(),
             "--right-of",
-            p_n.c_str()};
-        bool exec_succ = exec_xrandr(args);
+            pN.c_str()};
+        bool exec_succ = ExecXrandr(args);
         if (!exec_succ) {
-          XRRFreeCrtcInfo(crtc_info);
-          XRRFreeCrtcInfo(crtc_info1);
-          XRRFreeOutputInfo(output_info);
-          XRRFreeOutputInfo(output_info1);
+          XRRFreeCrtcInfo(crtcInfo);
+          XRRFreeCrtcInfo(crtcInfo1);
+          XRRFreeOutputInfo(outputInfo);
+          XRRFreeOutputInfo(outputInfo1);
           XRRFreeScreenResources(res);
           XCloseDisplay(display);
           p.mX.Construct(-1);
@@ -538,17 +538,17 @@ already_AddRefed<Promise> B2GScreenManager::SetResolution(int32_t screen_num,
           promise->MaybeResolve(p);
           return promise.forget();
         }
-        p.mX.Construct(primary_width);
+        p.mX.Construct(primaryWidth);
         p.mY.Construct(0);
-        p.mWidth.Construct(new_width);
-        p.mHeight.Construct(new_height);
+        p.mWidth.Construct(newWidth);
+        p.mHeight.Construct(newHeight);
       }
-      XRRFreeCrtcInfo(crtc_info1);
+      XRRFreeCrtcInfo(crtcInfo1);
     }
-    XRRFreeOutputInfo(output_info1);
+    XRRFreeOutputInfo(outputInfo1);
   }
-  XRRFreeCrtcInfo(crtc_info);
-  XRRFreeOutputInfo(output_info);
+  XRRFreeCrtcInfo(crtcInfo);
+  XRRFreeOutputInfo(outputInfo);
   XRRFreeScreenResources(res);
   XCloseDisplay(display);
   promise->MaybeResolve(p);

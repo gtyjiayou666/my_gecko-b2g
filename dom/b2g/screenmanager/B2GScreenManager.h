@@ -17,6 +17,11 @@ namespace mozilla {
 
 namespace dom {
 
+enum DisplayType {
+  MirrorReplication,
+  Extension
+};
+
 class B2GScreenManager final : public nsISupports, public nsWrapperCache {
  public:
   NS_DECL_CYCLE_COLLECTING_ISUPPORTS
@@ -32,10 +37,10 @@ class B2GScreenManager final : public nsISupports, public nsWrapperCache {
   already_AddRefed<Promise> GetScreenNum();
   already_AddRefed<Promise> GetCurrentResolution(int32_t index);
   already_AddRefed<Promise> GetScreenResolutions(int32_t index);
-  already_AddRefed<Promise> SetResolution(int32_t screen_num,
-                                          int32_t extension_mod,
-                                          int32_t new_width,
-                                          int32_t new_height);
+  already_AddRefed<Promise> SetResolution(int32_t index,
+                                          int32_t displayType,
+                                          int32_t newWidth,
+                                          int32_t newHeight);
 
  protected:
   ~B2GScreenManager() = default;

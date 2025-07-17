@@ -23,7 +23,7 @@ class ScreenHelperGTK final : public ScreenManager::Helper {
   static int GetMonitorCount();
   static gint GetGTKMonitorScaleFactor(gint aMonitorNum = 0);
   static RefPtr<widget::Screen> GetScreenForWindow(nsWindow* aWindow);
-  static nsWindow* mTopWindows;
+  static nsWindow* mTopWindow;
 };
 
 }  // namespace mozilla::widget

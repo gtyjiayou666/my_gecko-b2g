@@ -21,5 +21,5 @@ interface B2GScreenManager {
     Promise<long> getScreenNum();
     Promise<Resolution> getCurrentResolution(long index);
     Promise<sequence<Resolution>> getScreenResolutions(long index);
-    Promise<Pos> setResolution(long screen_num, long extension_mod, long new_width, long new_height);
+    Promise<Pos> setResolution(long index, long displayType, long newWidth, long newHeight);
 };
