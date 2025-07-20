@@ -1,3 +1,4 @@
+This project is fork from https://github.com/capyloon/gecko-b2g. Due to the large size of the project, the import process consistently failed, hence no import was performed.
 An explanation of the Firefox Source Code Directory Structure and links to
 project pages with documentation can be found at:
 
